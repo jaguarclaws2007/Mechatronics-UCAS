@@ -1,0 +1,13 @@
+{
+    "cSpell.words": [
+        "djitellopy",
+        "tello"
+    ],
+    "python.terminal.activateEnvironment": true,
+    "python.pipenvPath": "../.venv/bin/python",
+    "python.defaultInterpreterPath": "../.venv/bin/python",
+    "code-runner.executorMap": {
+        "python": "\"$pythonPath\" $fullFileName"
+     },
+     //"code-runner.runInTerminal": true
+}
