@@ -69,7 +69,7 @@ Now that you're in the correct folder, you'll need to install some extensions. P
 
 ![install plugins](Assets/install.png "Plugins")
 
-At this point you need to install and set up the python environment. Press `Ctrl + ` ` to open a terminal, then enter
+At this point you need to install and set up the python environment. Press <code>Ctrl + `</code> to open a terminal, then enter
 ```
 python -m venv .venv; .\.venv\Scripts\pip.exe install -r requirements.txt
 ```
@@ -81,7 +81,7 @@ Select the option that is recommended, as shown below:
 
 ![interpreter](Assets/interpreter.png "Interpreter")
 
-Lastly, to make sure your terminal is in the correct environment, simply click the trash icon at the top right of the terminal, then press `Ctrl + ` ` to open a new one.
+Lastly, to make sure your terminal is in the correct environment, simply click the trash icon at the top right of the terminal, then press <code>Ctrl + `</code> to open a new one.
 
 ![trash](Assets/trash.png "Trash")
 
