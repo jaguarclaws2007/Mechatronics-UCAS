@@ -4,9 +4,32 @@ Course materials, example files, and libraries for mechatronics
 
 ## Introduction
 
-To start setting up the workspace, simply clone this repository by pressing `Windows + R`, entering `cmd`, then pasting in and running:
+To set up this class workspace, start by creating a GitHub account. Then fork ("copy") this main Mechatronics repository into your account.
+
+To fork the Repository, start by selecting the `Fork` option at the top of the screen:
+
+![Fork](Assets/Fork.png "Fork")
+
+It will then take you to the specifics page. Make sure that the new `Owner` of the forked repo is your account, and that your chosen `Repository name` (default is "Mechatronics-UCAS") is available. Also ensure that the `Copy the main branch only` option is selected. Once this is done, create your fork:
+
+![Create_Fork](Assets/Create_Fork.png "Create Fork")
+
+GitHub will then Fork the Repository over to your account. This may take a significant amount of time:
+
+![forking](Assets/forking.png "Forking")
+
+Now, you should have your own copy of the "Mechatronics-UCAS" Repository in your pages. 
+
+**Follow the rest of this guide while inside your copy of the Repository!**
+You can ensure that you are in your fork by looking at the top of the code page, where it will have the forking information:
+
+![New_Repo](Assets/New_Repo.png "New Repository")
+
+# PC Cloning Instructions
+Now, to get the files onto your computer, simply clone this repository by pressing `Windows + R`, entering `cmd`, then pasting in and running:
 ```
-cd Documents; git clone https://github.com/Nbobito/Mechatronics-UCAS.git  
+cd Documents
+git clone https://github.com/Nbobito/Mechatronics-UCAS.git  
 ```
 
 Alternatively, if you get an error, just download the zip file and extract:
