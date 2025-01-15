@@ -5,6 +5,11 @@
   <img src="Assets/nxt.jpg" alt="NXT Robot" title="NXT Robot" height="200px" />
 </p>
 
+<p align="center">
+  <img src="Assets/Microbit.jpg" alt="Micro:Bit" title="Micro:Bit" height="200px" />
+  <img src="Assets/Haxxercode.jpg" alt="Code" title="Code" height="200px" />
+</p>
+
 ## Introduction
 
 This is the class workshop layout for the Mechatronics I and Mechatronics II classes at the Utah County Academy of Sciences (UCAS). It contains many course materials, such as: documentation PDFs, example programs, assignment instructions, key asset materials, and environment layouts.
