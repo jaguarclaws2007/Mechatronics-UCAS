@@ -39,7 +39,9 @@ Select the option that is recommended, as shown below:
 
 ![interpreter](Assets/interpreter.png "Interpreter")
 
-Lastly, to make sure your terminal is in the correct environment, simply click the trash icon, then press `Ctrl + ` ` to open a new one.
+Lastly, to make sure your terminal is in the correct environment, simply click the trash icon at the top right of the terminal, then press `Ctrl + ` ` to open a new one.
+
+![trash](Assets/trash.png "Trash")
 
 **You've finished setup!!!**
 
