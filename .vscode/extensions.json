@@ -8,7 +8,8 @@
 		"kevinrose.vsc-python-indent",
 		"formulahendry.code-runner",
 		"christian-kohler.path-intellisense",
-		"visualstudioexptteam.vscodeintellicode"
+		"visualstudioexptteam.vscodeintellicode",
+		"pkief.material-icon-theme"
 	],
 	// List of extensions recommended by VS Code that should not be recommended for users of this workspace.
 	"unwantedRecommendations": [
