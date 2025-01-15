@@ -39,10 +39,16 @@ You can ensure that you are in your fork by looking at the top of the code page,
 ![New_Repo](Assets/New_Repo.png "New Repository")
 
 ## PC Cloning Instructions
-Now, to get the files onto your computer, simply clone this repository by pressing `Windows + R`, entering `cmd`, then pasting in and running:
+Now, to get the files onto your computer, we are going to clone this repository to your documents folder. Start by getting your `Clone URL` from the code dropdown menu:
+
+![Clone_URL](Assets/Clone_URL.png "Clone URL")
+
+Then enter the command line by pressing `Windows + R`, entering `cmd`, then running:
 ```
 cd Documents
-git clone https://github.com/Nbobito/Mechatronics-UCAS.git  
+```
+```
+git clone {Your Clone URL Here}  
 ```
 
 Alternatively, if you get an error, just download the zip file and extract:
