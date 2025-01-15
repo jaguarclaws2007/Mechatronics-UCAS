@@ -22,7 +22,7 @@ To fork the Repository, start by selecting the `Fork` option at the top of the s
 
 ![Fork](Assets/Fork.png "Fork")
 
-It will then take you to the specifics page. Make sure that the new `Owner` of the forked repo is your account, and that your chosen `Repository name` (default is "Mechatronics-UCAS") is available. Also ensure that the `Copy the main branch only` option is selected. Once this is done, create your fork:
+It will then take you to the specifics page. Make sure that the new `Owner` of the forked Repository is your account, and that your chosen `Repository name` (default is "Mechatronics-UCAS") is available. Also ensure that the `Copy the main branch only` option is selected. Once this is done, create your fork:
 
 ![Create_Fork](Assets/Create_Fork.png "Create Fork")
 
