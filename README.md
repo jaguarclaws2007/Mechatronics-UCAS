@@ -71,7 +71,7 @@ Now that you're in the correct folder, you'll need to install some extensions. P
 
 At this point you need to install and set up the python environment. Press <code>Ctrl + `</code> to open a terminal, then enter
 ```
-python -m venv .venv; .\.venv\Scripts\pip.exe install -r requirements.txt
+python -m venv .venv; .\.venv\Scripts\pip.exe install -r Assets\requirements.txt
 ```
 Once again, just exit out of and ignore any pop-ups.
 
