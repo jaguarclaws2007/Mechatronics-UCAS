@@ -1,8 +1,8 @@
 # Mechatronics-UCAS
 
 <p align="center">
-  <img src="Assets/drone.jpg" alt="Drone" title="Drone" width="45%" />
-  <img src="Assets/nxt.jpg" alt="NXT Robot" title="NXT Robot" width="45%" />
+  <img src="Assets/drone.jpg" alt="Drone" title="Drone" height="200px" />
+  <img src="Assets/nxt.jpg" alt="NXT Robot" title="NXT Robot" height="200px" />
 </p>
 
 ## Introduction
