@@ -29,12 +29,19 @@ Now that you're in the correct folder, you'll need to install some extensions. P
 
 At this point you need to install and set up the python environment. Press `Ctrl + ` ` to open a terminal, then enter
 ```
-python -m venv .venv
+python -m venv .venv; .\.venv\Scripts\pip.exe install -r requirements.txt
 ```
 Once again, just exit out of and ignore any pop-ups.
 
 Once the command finishes running, open the command pallet again and enter `python select interpreter`. 
 
+Select the option that is recommended, as shown below:
+
+![interpreter](Assets/interpreter.png "Interpreter")
+
+Lastly, to make sure your terminal is in the correct environment, simply click the trash icon, then press `Ctrl + ` ` to open a new one.
+
+**You've finished setup!!!**
 
 ## (Very) Useful Resources
 - W3 Schools python [tutorial](https://www.w3schools.com/python/)
