@@ -1,11 +1,15 @@
 # Mechatronics-UCAS
-![flying drone](Assets/drone.jpg "Drone")
 
-### Introduction
+<p align="center">
+  <img src="Assets/drone.jpg" alt="Drone" title="Drone" width="45%" />
+  <img src="Assets/nxt.jpg" alt="NXT Robot" title="NXT Robot" width="45%" />
+</p>
+
+## Introduction
 
 This is the class workshop layout for the Mechatronics I and Mechatronics II classes at the Utah County Academy of Sciences (UCAS). It contains many course materials, such as: documentation PDFs, example programs, assignment instructions, key asset materials, and environment layouts.
 
-### Repository Forking Instructions
+## Repository Forking Instructions
 
 To set up this class workspace, start by creating a GitHub account. Then fork ("copy") this main Mechatronics repository into your account.
 
@@ -29,7 +33,7 @@ You can ensure that you are in your fork by looking at the top of the code page,
 
 ![New_Repo](Assets/New_Repo.png "New Repository")
 
-### PC Cloning Instructions
+## PC Cloning Instructions
 Now, to get the files onto your computer, simply clone this repository by pressing `Windows + R`, entering `cmd`, then pasting in and running:
 ```
 cd Documents
