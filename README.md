@@ -1,8 +1,11 @@
 # Mechatronics-UCAS
-Course materials, example files, and libraries for mechatronics
 ![flying drone](Assets/drone.jpg "Drone")
 
-## Introduction
+### Introduction
+
+This is the class workshop layout for the Mechatronics I and Mechatronics II classes at the Utah County Academy of Sciences (UCAS). It contains many course materials, such as: documentation PDFs, example programs, assignment instructions, key asset materials, and environment layouts.
+
+### Repository Forking Instructions
 
 To set up this class workspace, start by creating a GitHub account. Then fork ("copy") this main Mechatronics repository into your account.
 
