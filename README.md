@@ -21,11 +21,12 @@ GitHub will then Fork the Repository over to your account. This may take a signi
 Now, you should have your own copy of the "Mechatronics-UCAS" Repository in your pages. 
 
 **Follow the rest of this guide while inside your copy of the Repository!**
+
 You can ensure that you are in your fork by looking at the top of the code page, where it will have the forking information:
 
 ![New_Repo](Assets/New_Repo.png "New Repository")
 
-# PC Cloning Instructions
+### PC Cloning Instructions
 Now, to get the files onto your computer, simply clone this repository by pressing `Windows + R`, entering `cmd`, then pasting in and running:
 ```
 cd Documents
