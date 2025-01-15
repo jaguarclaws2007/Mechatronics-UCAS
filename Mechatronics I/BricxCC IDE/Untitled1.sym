@@ -1,0 +1,369 @@
+#SYMBOLS
+Index	Identifier	Type	Flag	Data	Size	RefCount
+0	__D0starter	6	1	0	4	22
+1	__signed_stack_001main	6	1	4	4	4
+2	__signed_stack_002main	6	1	8	4	2
+3	__Wait_7qG2_ms_7qG2_000_inline_main	5	1	12	4	4
+4	__SRSTmpLongVal	6	1	16	4	2
+5	__D0main	6	1	20	4	5
+6	__signed_stack_003main	6	1	24	4	2
+7	__signed_stack_002starter	6	1	28	4	6
+8	__TextOutMutex	9	0	32	4	8
+9	__signed_stack_001starter	6	1	36	4	14
+10	__starter_7qG2_clicked_7qG2_000	4	1	40	2	3
+11	__constVal200	4	0	42	2	2
+12	__main_7qG2_i_7qG2_001	4	1	44	2	5
+13	__starter_7qG2_count_7qG2_000	4	1	46	2	6
+14	partner	4	0	48	2	3
+15	____initialize_global_data_return	1	1	50	1	3
+16	__starter_return	1	1	51	1	3
+17	__constVal4	2	0	52	1	2
+18	__constVal5	2	0	53	1	2
+19	__constVal2	2	0	54	1	1
+20	__WFRRTmpByte	1	1	55	1	2
+21	__constVal1	2	0	56	1	5
+22	__constVal3	2	0	57	1	1
+23	__PointOutArgs	8	0	3	12	4
+24	__PointOutArgs.Result	2	1	60	1	4
+25	__PointOutArgs.Location	8	0	2	4	4
+26	__PointOutArgs.Location.X	4	1	64	2	4
+27	__PointOutArgs.Location.Y	4	1	66	2	4
+28	__PointOutArgs.Options	5	1	68	4	4
+29	__TextOutArgs	8	0	4	16	24
+30	__TextOutArgs.Result	2	1	72	1	24
+31	__TextOutArgs.Location	8	0	2	4	24
+32	__TextOutArgs.Location.X	4	1	76	2	24
+33	__TextOutArgs.Location.Y	4	1	78	2	24
+34	__TextOutArgs.Text	7	0	80	4	24
+35	__TextOutArgs.Text.Text_type	1	0	0	1	0
+36	__TextOutArgs.Options	5	1	84	4	24
+37	__RBtnArgs	8	0	5	8	4
+38	__RBtnArgs.Result	2	1	88	1	4
+39	__RBtnArgs.Index	1	1	89	1	4
+40	__RBtnArgs.Pressed	1	1	90	1	4
+41	__RBtnArgs.Count	1	1	91	1	4
+42	__RBtnArgs.Reset	1	1	92	1	4
+43	__CBTWArgs	8	0	3	8	4
+44	__CBTWArgs.Result	2	1	96	1	4
+45	__CBTWArgs.Connection	1	1	97	1	4
+46	__CBTWArgs.Buffer	7	0	98	4	4
+47	__CBTWArgs.Buffer.Buffer_type	1	0	0	1	0
+48	__CHSWArgs	8	0	3	12	3
+49	__CHSWArgs.Status	2	1	100	1	3
+50	__CHSWArgs.Buffer	7	0	102	4	3
+51	__CHSWArgs.Buffer.Buffer_type	1	0	0	1	0
+52	__CHSWArgs.BufferLen	1	1	104	1	3
+53	__MRArgs	8	0	4	8	5
+54	__MRArgs.Result	2	1	108	1	5
+55	__MRArgs.QueueID	1	1	109	1	5
+56	__MRArgs.Remove	1	1	110	1	5
+57	__MRArgs.Message	7	0	112	4	5
+58	__MRArgs.Message.Message_type	1	0	0	1	0
+59	__constStr0013	7	0	114	4	2
+60	__constStr0013.__constStr0013_type	1	1	0	1	0
+61	__starter_7qG2_input_7qG2_000	7	0	116	4	3
+62	__starter_7qG2_input_7qG2_000.__starter_7qG2_input_7qG2_000_type	1	0	0	1	0
+63	__constStr0010	7	0	118	4	3
+64	__constStr0010.__constStr0010_type	1	1	0	1	0
+65	__constStr0011	7	0	120	4	1
+66	__constStr0011.__constStr0011_type	1	1	0	1	0
+67	__constStr0012	7	0	122	4	1
+68	__constStr0012.__constStr0012_type	1	1	0	1	0
+69	__ArrHelper__main_83_0	7	0	124	4	2
+70	__ArrHelper__main_83_0.__ArrHelper__main_83_0_type	1	0	0	1	0
+71	__strbufmain	7	0	126	4	2
+72	__strbufmain.__strbufmain_type	1	0	0	1	0
+73	__DCMessageWritePacket	7	0	128	4	1
+74	__DCMessageWritePacket.__DCMessageWritePacket_type	1	0	0	1	0
+75	__SRSTmpBuf	7	0	130	4	6
+76	__SRSTmpBuf.__SRSTmpBuf_type	1	0	0	1	0
+77	__SRSSendBuf	7	0	132	4	3
+78	__SRSSendBuf.__SRSSendBuf_type	1	0	0	1	0
+79	order	7	0	134	4	4
+80	order.order_type	7	0	0	4	0
+81	order.order_type.order_type_type	1	0	0	1	0
+82	__constStr0009	7	0	136	4	1
+83	__constStr0009.__constStr0009_type	1	1	0	1	0
+84	__strbufstarter	7	0	138	4	12
+85	__strbufstarter.__strbufstarter_type	1	0	0	1	0
+86	__strretvalmain	7	0	140	4	2
+87	__strretvalmain.__strretvalmain_type	1	0	0	1	0
+88	__strtmpbufstarter	7	0	142	4	2
+89	__strtmpbufstarter.__strtmpbufstarter_type	1	0	0	1	0
+#SOURCES
+Clump	Line	PC	Source
+0	37	0	#line 37 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	38	0		subcall __initialize_global_data, ____initialize_global_data_return
+0	37	2	#line 37 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	37	2	#line 37 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	38	2		set __Wait_7qG2_ms_7qG2_000_inline_main, 1000
+0	37	5	#line 37 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	8551	5	#line 8551 "NXCDefs.h"
+0	8552	5		waitv __Wait_7qG2_ms_7qG2_000_inline_main
+0	8551	7	#line 8551 "NXCDefs.h"
+0	38	7	#line 38 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	39	7	#line 39 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	40	7		subcall starter, __starter_return
+0	39	9	#line 39 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	39	9	#line 39 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	40	9		set __main_7qG2_i_7qG2_001, 0
+0	39	12	#line 39 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	39	12	#line 39 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	40	12		mov __signed_stack_001main, __main_7qG2_i_7qG2_001
+0	39	14	#line 39 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	39	14	#line 39 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	40	14		set __D0main, 2
+0	39	17	#line 39 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	40	17		cmp 0, __D0main, __signed_stack_001main, __D0main
+0	39	21	#line 39 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	40	21		brtst 4, __ASM_Label_645, __D0main
+0	39	24	#line 39 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	40	24		jmp __ASM_Label_646
+0	39	26	#line 39 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	40	26		add __main_7qG2_i_7qG2_001, __main_7qG2_i_7qG2_001, __constVal1
+0	40	30	#line 40 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	41	30		jmp __ASM_Label_644
+0	40	32	#line 40 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	41	32		set __signed_stack_001main, 20
+0	40	35	#line 40 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	40	35	#line 40 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	41	35		set __signed_stack_002main, 40
+0	40	38	#line 40 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	40	38	#line 40 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	41	38		mov __signed_stack_003main, __main_7qG2_i_7qG2_001
+0	40	40	#line 40 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	40	40	#line 40 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	41	40		index __ArrHelper__main_83_0, order, __signed_stack_003main
+0	40	44	#line 40 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	41	44		strcat __strretvalmain, __ArrHelper__main_83_0
+0	40	48	#line 40 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	41	48		strcat __strbufmain, __strretvalmain
+0	41	52	#line 41 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	42	52		acquire __TextOutMutex
+0	41	53	#line 41 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	42	53		mov __TextOutArgs.Location.X, __signed_stack_001main
+0	41	55	#line 41 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	42	55		mov __TextOutArgs.Location.Y, __signed_stack_002main
+0	41	57	#line 41 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	42	57		set __TextOutArgs.Options, 0
+0	41	60	#line 41 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	42	60		mov __TextOutArgs.Text, __strbufmain
+0	41	62	#line 41 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	42	62		syscall 13, __TextOutArgs
+0	41	65	#line 41 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	42	65		mov __D0main, __TextOutArgs.Result
+0	41	67	#line 41 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	42	67		release __TextOutMutex
+0	41	68	#line 41 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	41	68	#line 41 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	42	68		set __Wait_7qG2_ms_7qG2_000_inline_main, 2000
+0	41	71	#line 41 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	8551	71	#line 8551 "NXCDefs.h"
+0	8552	71		waitv __Wait_7qG2_ms_7qG2_000_inline_main
+0	8551	73	#line 8551 "NXCDefs.h"
+0	42	73	#line 42 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	6678	73	#line 6678 "NXCDefs.h"
+0	6679	73	#pragma macro 6
+0	6679	73		mov __PointOutArgs.Location.X, __constVal200
+0	6679	75		mov __PointOutArgs.Location.Y, __constVal200
+0	6679	77		mov __PointOutArgs.Options, __constVal1
+0	6679	79		syscall 14, __PointOutArgs
+0	6295	82	#line 6295 "NXCDefs.h"
+0	6678	82	#line 6678 "NXCDefs.h"
+0	43	82	#line 43 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	52	82	#line 52 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	53	82		jmp __ASM_Label_647
+0	52	84	#line 52 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+0	53	84		exit -1, -1
+1	16	0	#line 16 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	17	0		set __signed_stack_001starter, 10
+1	16	3	#line 16 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	16	3	#line 16 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	17	3		set __signed_stack_002starter, 10
+1	16	6	#line 16 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	16	6	#line 16 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	17	6		strcat __strbufstarter, __constStr0009
+1	17	10	#line 17 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	18	10		acquire __TextOutMutex
+1	17	11	#line 17 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	18	11		mov __TextOutArgs.Location.X, __signed_stack_001starter
+1	17	13	#line 17 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	18	13		mov __TextOutArgs.Location.Y, __signed_stack_002starter
+1	17	15	#line 17 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	18	15		set __TextOutArgs.Options, 0
+1	17	18	#line 17 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	18	18		mov __TextOutArgs.Text, __strbufstarter
+1	17	20	#line 17 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	18	20		syscall 13, __TextOutArgs
+1	17	23	#line 17 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	18	23		mov __D0starter, __TextOutArgs.Result
+1	17	25	#line 17 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	18	25		release __TextOutMutex
+1	17	26	#line 17 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	19	26	#line 19 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	20	26		set __starter_7qG2_clicked_7qG2_000, 0
+1	19	29	#line 19 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	20	29	#line 20 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	21	29		set __starter_7qG2_count_7qG2_000, 0
+1	20	32	#line 20 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	20	32	#line 20 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	21	32		mov __signed_stack_001starter, __starter_7qG2_count_7qG2_000
+1	20	34	#line 20 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	20	34	#line 20 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	21	34		set __D0starter, 2
+1	20	37	#line 20 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	21	37		cmp 0, __D0starter, __signed_stack_001starter, __D0starter
+1	21	41	#line 21 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	22	41		brtst 4, __ASM_Label_613, __D0starter
+1	21	44	#line 21 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	22	44	#pragma macro 7
+1	22	44		mov __MRArgs.QueueID, __constVal5
+1	22	46		mov __MRArgs.Remove, __constVal1
+1	22	48		syscall 27, __MRArgs
+1	22	51		mov __starter_7qG2_input_7qG2_000, __MRArgs.Message
+1	22	53		mov __D0starter, __MRArgs.Result
+1	6033	55	#line 6033 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	21	55	#line 21 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	21	55	#line 21 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	22	55	#line 22 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	23	55		strcat __strbufstarter, __starter_7qG2_input_7qG2_000
+1	22	59	#line 22 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	23	59		mov __strtmpbufstarter, __strbufstarter
+1	22	61	#line 22 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	23	61		strcat __strbufstarter, __constStr0010
+1	22	65	#line 22 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	23	65		cmp 5, __D0starter, __strtmpbufstarter, __strbufstarter
+1	23	69	#line 23 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	24	69		brtst 4, __ASM_Label_618, __D0starter
+1	23	72	#line 23 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	24	72		set __signed_stack_001starter, 0
+1	23	75	#line 23 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	24	75	#line 24 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	25	75		strcat __strbufstarter, __starter_7qG2_input_7qG2_000
+1	24	79	#line 24 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	25	79		replace order, order, __signed_stack_001starter, __strbufstarter
+1	24	84	#line 24 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	25	84	#line 25 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	26	84		add __starter_7qG2_count_7qG2_000, __starter_7qG2_count_7qG2_000, __constVal1
+1	25	88	#line 25 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	25	88	#line 25 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	26	88		set __signed_stack_001starter, 10
+1	25	91	#line 25 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	25	91	#line 25 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	26	91		set __signed_stack_002starter, 20
+1	25	94	#line 25 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	25	94	#line 25 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	26	94		strcat __strbufstarter, __constStr0011
+1	26	98	#line 26 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	27	98		acquire __TextOutMutex
+1	26	99	#line 26 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	27	99		mov __TextOutArgs.Location.X, __signed_stack_001starter
+1	26	101	#line 26 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	27	101		mov __TextOutArgs.Location.Y, __signed_stack_002starter
+1	26	103	#line 26 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	27	103		set __TextOutArgs.Options, 0
+1	26	106	#line 26 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	27	106		mov __TextOutArgs.Text, __strbufstarter
+1	26	108	#line 26 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	27	108		syscall 13, __TextOutArgs
+1	26	111	#line 26 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	27	111		mov __D0starter, __TextOutArgs.Result
+1	26	113	#line 26 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	27	113		release __TextOutMutex
+1	26	114	#line 26 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	27	114	#line 27 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	27	114	#line 27 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	28	114		set __signed_stack_001starter, 3
+1	27	117	#line 27 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	27	117	#line 27 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	28	117		set __D0starter, 1
+1	27	120	#line 27 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	27	120	#line 27 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	28	120		mov __RBtnArgs.Index, __signed_stack_001starter
+1	27	122	#line 27 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	28	122		mov __RBtnArgs.Reset, __D0starter
+1	27	124	#line 27 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	28	124		syscall 20, __RBtnArgs
+1	27	127	#line 27 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	28	127		mov __D0starter, __RBtnArgs.Pressed
+1	27	129	#line 27 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	27	129	#line 27 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	28	129		tst 5, __D0starter, __D0starter
+1	27	132	#line 27 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	28	132		brtst 4, __ASM_Label_626, __D0starter
+1	27	135	#line 27 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	28	135		mov __signed_stack_001starter, __starter_7qG2_clicked_7qG2_000
+1	27	137	#line 27 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	27	137	#line 27 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	28	137		set __D0starter, 0
+1	27	140	#line 27 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	28	140		cmp 4, __D0starter, __signed_stack_001starter, __D0starter
+1	28	144	#line 28 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	29	144		brtst 4, __ASM_Label_635, __D0starter
+1	28	147	#line 28 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	29	147	#pragma macro 24
+1	29	147		mov __SRSTmpBuf, __DCMessageWritePacket
+1	29	149		replace __SRSTmpBuf, __SRSTmpBuf, __constVal2, __constVal5
+1	29	154		arrsize __SRSTmpLongVal, __constStr0010
+1	29	157		replace __SRSTmpBuf, __SRSTmpBuf, __constVal3, __SRSTmpLongVal
+1	29	162		arrbuild __SRSSendBuf, __SRSTmpBuf, __constStr0010
+1	29	167		brcmp 0, __ConnWrite_Else0, partner, __constVal4
+1	29	171		sub __WFRRTmpByte, partner, __constVal4
+1	29	175		arrbuild __CHSWArgs.Buffer, __WFRRTmpByte, __SRSSendBuf
+1	29	180		syscall 37, __CHSWArgs
+1	29	183		mov __D0starter, __CHSWArgs.Status
+1	29	185		jmp __ConnWrite_EndIf0
+1	29	187		mov __CBTWArgs.Connection, partner
+1	29	189		mov __CBTWArgs.Buffer, __SRSSendBuf
+1	29	191		syscall 29, __CBTWArgs
+1	29	194		mov __D0starter, __CBTWArgs.Result
+1	6138	196	#line 6138 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	28	196	#line 28 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	28	196	#line 28 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	30	196	#line 30 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	31	196		add __starter_7qG2_count_7qG2_000, __starter_7qG2_count_7qG2_000, __constVal1
+1	30	200	#line 30 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	31	200	#line 31 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	32	200		set __starter_7qG2_clicked_7qG2_000, 1
+1	31	203	#line 31 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	31	203	#line 31 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	31	203	#line 31 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	32	203		set __signed_stack_001starter, 10
+1	31	206	#line 31 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	31	206	#line 31 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	32	206		set __signed_stack_002starter, 30
+1	31	209	#line 31 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	31	209	#line 31 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	32	209		strcat __strbufstarter, __constStr0012
+1	32	213	#line 32 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	33	213		acquire __TextOutMutex
+1	32	214	#line 32 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	33	214		mov __TextOutArgs.Location.X, __signed_stack_001starter
+1	32	216	#line 32 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	33	216		mov __TextOutArgs.Location.Y, __signed_stack_002starter
+1	32	218	#line 32 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	33	218		set __TextOutArgs.Options, 0
+1	32	221	#line 32 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	33	221		mov __TextOutArgs.Text, __strbufstarter
+1	32	223	#line 32 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	33	223		syscall 13, __TextOutArgs
+1	32	226	#line 32 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	33	226		mov __D0starter, __TextOutArgs.Result
+1	32	228	#line 32 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	33	228		release __TextOutMutex
+1	32	229	#line 32 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	34	229	#line 34 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	36	229	#line 36 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	37	229		jmp __ASM_Label_612
+1	36	231	#line 36 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	36	231	#line 36 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+1	37	231		subret __starter_return
+2	53	0	#line 53 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+2	54	0		arrbuild order, __constStr0013, __constStr0013
+2	53	5	#line 53 "C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc"
+2	54	5		subret ____initialize_global_data_return
+#CLUMPS
+Clump	Name	Offset	File
+0	main	0	C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc
+1	starter	87	C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc
+2	__initialize_global_data	320	C:\Users\hyrum\Pictures\Lego NXT Files -Student\BricxCC IDE\Untitled1.nxc
