@@ -243,7 +243,6 @@ while running:
                     overmove_correct(shape, "expander")
                 else:
                     altering_2, expanding = False, False
-
         else:
             if (hitbox_check(shape.expansion_hitbox, 'square', mouse_hitbox) or expanding) and not moving and mouse_layer == shape.layer: # Growth box check
                 if left_click:
