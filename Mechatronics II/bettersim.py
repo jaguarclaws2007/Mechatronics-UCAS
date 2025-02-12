@@ -119,10 +119,10 @@ def hitborder(hitbox):
     right_x = hitbox[0] + hitbox[2]
     top_y = hitbox[1]
     bottom_y = hitbox[1] + hitbox[3]
-    if left_x < newX: x += newX - left_x
-    if right_x > screen_size_x: x -= right_x - screen_size_x
-    if top_y < 0: y += -top_y
-    if bottom_y > screen_size_y: y -= bottom_y - screen_size_y
+    if left_x < newX: x = newX - left_x
+    elif right_x > screen_size_x: x = screen_size_x - right_x
+    if top_y < 0: y = -top_y
+    elif bottom_y > screen_size_y: y = screen_size_y - bottom_y
     
     if y != 0 or x != 0:
         hit = True
@@ -194,6 +194,7 @@ mouse_layer = 1
 snap_mode = False
 
 #Objects starting constants
+shape_lock = (False, None, None)
 shape_objects = []
 moving = False
 altering_point_1 = False
@@ -289,15 +290,25 @@ while running:
                 if left_click:
                     altering_point_1 = True
                     expanding = True
+                    '''right_x = shape.expansion_hitbox_1[0] + shape.expansion_hitbox_1[2]
+                    left_x = shape.expansion_hitbox_1[0]
+                    if right_x < screen_size_x and left_x > newX:
+                        shape.x1 += change_x
+                    elif right_x >= screen_size_x:
+                        shape.x1 = screen_size_x - 1
+                    shape.y1 += change_y'''
+
+
                     shape.x1 += change_x
                     shape.y1 += change_y
-
                     if not mouse_lock[0]:
                         mouse_lock = (True, shape, shape.x1, shape.y1, x_mouse, y_mouse)
                 else:
                     altering_point_1 = False
                     expanding = False
                     mouse_lock = (False, None, None, None, 0, 0)
+
+                
 
             if (hitbox(shape.expansion_hitbox_2, mouse_hitbox) or altering_point_2) and not (moving or altering_point_1) and mouse_layer == shape.layer:
                 if left_click:
@@ -312,41 +323,39 @@ while running:
                     mouse_lock = (False, None, None, None, 0, 0)
                     altering_point_2 = False
                     expanding = False
-
-            if not moving:
-                shape.x1 += hitborder(shape.expansion_hitbox_1)[0]
-                shape.y1 += hitborder(shape.expansion_hitbox_1)[1]
-                shape.x2 += hitborder(shape.expansion_hitbox_2)[0]
-                shape.y2 += hitborder(shape.expansion_hitbox_2)[1]
-            elif moving and hitborder(shape.expansion_hitbox_1)[2]: #HERE
-                shape.x -= change_x
-                shape.y -= change_y
+            
+            if moving:
+                left_x = min(shape.expansion_hitbox_1[0], shape.expansion_hitbox_2[0])
+                top_y = min(shape.expansion_hitbox_1[1], shape.expansion_hitbox_2[1])
+                width = abs(shape.expansion_hitbox_1[0] - shape.expansion_hitbox_2[0]) + 20
+                height = abs(shape.expansion_hitbox_1[1] - shape.expansion_hitbox_2[1]) + 20
+                hit = hitborder((left_x, top_y, width, height))
+                if hit[2]:
+                    shape.x += hit[0]
+                    shape.y += hit[1]
+            else:
+                hit_1 = hitborder(shape.expansion_hitbox_1)
+                hit_2 = hitborder(shape.expansion_hitbox_2)
+                if hit_1[2]:
+                    print(shape.expansion_hitbox_1)
+                    shape.x1 += hit_1[0]
+                    shape.y1 += hit_1[1]
+                if hit_2[2]:
+                    shape.x2 += hit_2[0]
+                    shape.y2 += hit_2[1]
     
         else:
             if(hitbox(shape.expansion_hitbox, mouse_hitbox) or expanding) and not (moving or altering_point_1 or altering_point_2) and mouse_layer == shape.layer:
                 if left_click:
                     expanding = True
-                    max_X = shape.expansion_hitbox[0] + shape.expansion_hitbox[2]
-                    max_Y = shape.expansion_hitbox[1] + shape.expansion_hitbox[3]
-                    if max_X < screen_size_x:
-                        if shape.width > 20:
-                            shape.width += change_x
-                            shape.x += change_x / 2
-                        elif shape.width == 20 and change_x > 0:
-                            shape.x += change_x / 2
-                            shape.width += change_x
-                        else:
-                            shape.width = 20
-                    
-                    elif max_X == screen_size_x and change_x < 0:
-                        if shape.width > 20:
-                            shape.width += change_x
-                            shape.x += change_x / 2
-                        elif shape.width == 20 and change_x > 0:
-                            shape.x += change_x / 2
-                            shape.width += change_x
-                        else:
-                            shape.width = 20
+                    if shape.width > 20:
+                        shape.width += change_x
+                        shape.x += change_x / 2
+                    elif shape.width == 20 and change_x > 0:
+                        shape.x += change_x / 2
+                        shape.width += change_x
+                    else:
+                        shape.width = 20
                     
                     if shape.height > 20:
                         shape.height -= change_y
@@ -357,11 +366,32 @@ while running:
                     else:
                         shape.height = 20
 
+                    if shape_lock[0]:
+                        if shape.hitbox[0] != shape_lock[1] or shape.hitbox[1] + shape.hitbox[3] != shape_lock[2]:
+                            print("HORPFLANFO")
+                            print(shape_lock, shape.hitbox[0], shape.hitbox[1] + shape.hitbox[3])
+                            shape.x += shape_lock[1] - shape.hitbox[0]
+                            shape.y += shape_lock[2] - (shape.hitbox[1] + shape.hitbox[3])
+
+
+                    if not shape_lock[0]:
+                        shape_lock = (True, shape.hitbox[0], shape.hitbox[1] + shape.hitbox[3])
+
                     if not mouse_lock[0]:
                         mouse_lock = (True, shape, shape.expansion_hitbox[0], shape.expansion_hitbox[1], x_mouse, y_mouse)
                 else:
+                    shape_lock = (False, None, None)
                     mouse_lock = (False, None, None, None, 0, 0)
                     expanding = False
+            
+            if moving:
+                left_x = shape.hitbox[0]
+                top_y = shape.hitbox[1] - 20
+                width = shape.hitbox[2] + 20
+                height = shape.hitbox[3] + 20
+                hit = hitborder(left_x, top_y, width, height)
+            else:
+                pass
 
         """Move Shape Centers"""
         if shape.type == 'line':
@@ -387,11 +417,6 @@ while running:
                 else:
                     mouse_lock = (False, None, None, None, 0, 0)
                     moving = False
-                shape.x += hitborder(shape.hitbox)[0]
-                shape.y += hitborder(shape.hitbox)[1]
-            hotbox = (shape.hitbox[0], shape.hitbox[1] - 20, shape.hitbox[2] + 20, shape.hitbox[3] + 20)
-            shape.x += hitborder(hotbox)[0]
-            shape.y += hitborder(hotbox)[1]
 
         elif shape.type == "ellipse":
             if(hitellipse(shape.hitbox, mouse_hitbox) or moving) and not (altering_point_1 or altering_point_2 or expanding) and mouse_layer == shape.layer:
@@ -404,11 +429,8 @@ while running:
                 else:
                     mouse_lock = (False, None, None, None, 0, 0)
                     moving = False
-            hotbox = (shape.hitbox[0], shape.hitbox[1] - 20, shape.hitbox[2] + 20, shape.hitbox[3] + 20)
-            shape.x += hitborder(hotbox)[0]
-            shape.y += hitborder(hotbox)[1]
 
-    mousecorrect(mouse_lock[0], mouse_lock[1], mouse_lock[2], mouse_lock[3], mouse_lock[4], mouse_lock[5])
+    #mousecorrect(mouse_lock[0], mouse_lock[1], mouse_lock[2], mouse_lock[3], mouse_lock[4], mouse_lock[5])
 
     '''Gametime Runner'''
     pygame.display.flip()
