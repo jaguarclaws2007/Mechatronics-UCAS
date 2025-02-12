@@ -25,19 +25,19 @@ keep_alive_thread = threading.Thread(target=keep_alive, args=(t, stop_event), da
 t.connect(False) #Create tello drone instance on connected drone port
 t.takeoff() #Takeoff!
 sleep(2) #Wait for drone to stabilize
- 
+
 """Position your Drone"""
 t.move_forward(100) #Go forward 100 cm
- 
+
 """Start the keep alive thread"""
 keep_alive_thread.start()  #Execute Process Chain
- 
+
 """Wait for drones to alllign"""
 test = int(input("Num here: ")) #Takes an int input
- 
+
 "Kill and reset keep alive thread"
 stop_keep_alive() #Kills and resets process chain
- 
+
 """Continue with code"""
 t.move_back(100) #Go backward 100 cm
 t.land() #Land the drone
