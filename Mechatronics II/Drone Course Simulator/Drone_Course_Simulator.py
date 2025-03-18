@@ -1,34 +1,11 @@
 '''Libraries'''
 import pygame
 import math
+import csv
+import os
 pygame.init()
 
 '''Shape Classes'''
-class line_object(object):
-    def __init__(self, id, x1, y1, x2, y2, color, layer, surface):
-        self.blockchain_id = id
-        self.type = 'line'
-        self.layer = layer
-        self.x = 0
-        self.y = 0
-        self.x1 = x1
-        self.y1 = y1
-        self.x2 = x2
-        self.y2 = y2
-        self.color = color
-        self.surface = surface
-        self.hitbox = (x1, y1, x2, y2)
-        self.expansion_hitbox_1 = (x1 - 10, y1 - 10, 20, 20)
-        self.expansion_hitbox_2 = (x2 - 10, y2 - 10, 20, 20)
-
-    def draw(self):
-        pygame.draw.line(self.surface, self.color, (self.x1 + self.x, self.y1+ self.y), (self.x2 + self.x, self.y2 + self.y), 5)
-        self.hitbox = (self.x1 + self.x, self.y1 + self.y, self.x2 + self.x, self.y2 + self.y)
-        self.expansion_hitbox_1 = (self.x1 + self.x - 10, self.y1 + self.y - 10, 20, 20)
-        self.expansion_hitbox_2 = (self.x2 + self.x - 10, self.y2 + self.y - 10, 20, 20)
-        pygame.draw.rect(self.surface, "yellow", self.expansion_hitbox_1, 2)
-        pygame.draw.rect(self.surface, "yellow", self.expansion_hitbox_2, 2)
-
 class arc_object(object):
     def __init__(self, id, x1, y1, x2, y2, color, layer, surface):
         self.blockchain_id = id
@@ -52,29 +29,24 @@ class arc_object(object):
         self.expansion_hitbox_3 = (x3 - 10, y3 - 10, 20, 20)
         self.can_lock = True
         self.locked = False
+        self.start_angle = 0
+        self.end_angle = 0
+        self.selector_angle = 0
 
     def adjust_selector_point(self):
-        # Offset to prevent overlapping coordinates
-        offset = 1e-4  
-
-        # Adjust x3 if it equals x1 or x2
+        offset = 1e-4  # Adjusting offset to prevent overlapping coordinates
         if self.x3 == self.x1:
             self.x3 += offset
         elif self.x3 == self.x2:
             self.x3 -= offset
-
-        # Adjust y3 if it equals y1 or y2
         if self.y3 == self.y1:
             self.y3 += offset
         elif self.y3 == self.y2:
             self.y3 -= offset
 
-    
     def circumcircle_calc(self):
         self.adjust_selector_point()
-        
         y1, y2, y3 = -self.y1, -self.y2, -self.y3
-
         self.mid_x_1 = (self.x1 + self.x3) / 2
         self.mid_y_1 = (y1 + y3) / 2
         self.mid_x_2 = (self.x2 + self.x3) / 2
@@ -102,7 +74,7 @@ class arc_object(object):
             self.x_I = self.mid_x_1
         else:
             self.x_I = (self.int_1_I - self.int_2_I) / (self.slope_1_I - self.slope_2_I)
-        
+
         if self.slope_1 == 0:
             self.y_I = self.slope_2_I * self.x_I - self.int_2_I
         else:
@@ -110,24 +82,38 @@ class arc_object(object):
 
         self.x_I = -self.x_I
         self.radius = math.sqrt(((self.x1 - self.x_I) ** 2) + ((y1 + self.y_I) ** 2))
-        
-        self.circumcircle_hitbox = (self.x_I - self.radius, (self.y_I - self.radius), self.radius * 2, self.radius * 2)
-        
 
+        self.circumcircle_hitbox = (self.x_I - self.radius, (self.y_I - self.radius), self.radius * 2, self.radius * 2)
 
     def distance_to_line(self, x0, y0, x1, y1, x2, y2):
-        # Calculates perpendicular distance from (x0, y0) to the line between (x1, y1) and (x2, y2)
         numerator = abs((y2 - y1) * x0 - (x2 - x1) * y0 + x2 * y1 - y2 * x1)
         denominator = math.sqrt((y2 - y1) ** 2 + (x2 - x1) ** 2)
         return numerator / denominator if denominator != 0 else float('inf')
 
-    def draw(self):
-        global altering_point_3
-        global counter
-        global left_click
-        threshold = 5  # Distance threshold to switch from arc to line
 
-        # Calculate the perpendicular distance from selector point to the line
+    def is_point_on_arc(self, center_x, cy, start_angle, end_angle, px, py):
+        # Calculate the angle of the point (px, py) relative to the center (cx, cy)
+        angle_point = math.atan2(py - cy, px - center_x)
+
+        # Normalize the angles to be between [0, 2π]
+        if start_angle < 0:
+            start_angle += 2 * math.pi
+        if end_angle < 0:
+            end_angle += 2 * math.pi
+        if angle_point < 0:
+            angle_point += 2 * math.pi
+
+        # Ensure the angles are in correct order (start_angle to end_angle) on the circle
+        if start_angle > end_angle:
+            start_angle, end_angle = end_angle, start_angle  # swap if needed for the arc's direction
+
+        # Check if the angle of the point lies between start_angle and end_angle
+        if start_angle <= angle_point <= end_angle:
+            return True
+        return False
+    
+    def draw(self):
+        threshold = 10  # Distance threshold to switch from arc to line
         distance = self.distance_to_line(self.x3, self.y3, self.x1, self.y1, self.x2, self.y2)
 
         # Update hitboxes
@@ -135,26 +121,56 @@ class arc_object(object):
         self.expansion_hitbox_1 = (self.x1 + self.x - 10, self.y1 + self.y - 10, 20, 20)
         self.expansion_hitbox_2 = (self.x2 + self.x - 10, self.y2 + self.y - 10, 20, 20)
         self.expansion_hitbox_3 = (self.x3 + self.x - 10, self.y3 + self.y - 10, 20, 20)
-        print(self.can_lock, self.locked)
 
-        if distance < threshold or altering_point_1 or altering_point_3:
-            # 🔵 Draw straight line if selector is close to the line
+        if distance < threshold and self.can_lock:
+            self.locked = True
+            # If the selector is close to the line, draw a straight line
             self.mid_x_main = (self.x1 + self.x2) / 2
             self.mid_y_main = (self.y1 + self.y2) / 2
             self.x3 = self.mid_x_main
             self.y3 = self.mid_y_main
-            if altering_point_3:
-                altering_point_3 = False
             pygame.draw.line(self.surface, self.color, 
-                        (self.x1 + self.x, self.y1 + self.y), 
-                        (self.x2 + self.x, self.y2 + self.y), 5)
+                             (self.x1 + self.x, self.y1 + self.y), 
+                             (self.x2 + self.x, self.y2 + self.y), 5)
+        elif not self.can_lock or not (distance < threshold):
+            self.locked = False
+            try:
+                # Calculate Circumcircle
+                self.circumcircle_calc()            
 
-        else:
-            # 🟢 Draw arc using the circumcircle
-            self.circumcircle_calc()
-            pygame.draw.ellipse(self.surface, "green", self.circumcircle_hitbox, 2)
+                # Calculate angles for the points
+                theta1 = math.atan2(self.y2 - self.y_I, self.x2 - self.x_I)
+                theta2 = math.atan2(self.y1 - self.y_I, self.x1 - self.x_I)
+                theta3 = math.atan2(self.y3 - self.y_I, self.x3 - self.x_I)
+
+                # Invert the angles to match Pygame's y-axis
+                self.start_angle = -theta1
+                self.end_angle = -theta2
+                self.selector_angle = -theta3
+
+                # Normalize Angles
+                if self.start_angle < 0:
+                    self.start_angle += 2 * math.pi
+                if self.end_angle < 0:
+                    self.end_angle += 2 * math.pi
+                if self.selector_angle < 0:
+                    self.selector_angle += 2 * math.pi
+                if self.start_angle > self.end_angle:
+                    self.start_angle, self.end_angle = self.end_angle, self.start_angle
+
+                # Swap if necessary
+                if not (self.start_angle < self.selector_angle < self.end_angle):
+                    self.start_angle, self.end_angle = self.end_angle, self.start_angle
+
+                # Construct Arc
+                pygame.draw.arc(self.surface, self.color, 
+                                    (self.x_I - self.radius, self.y_I - self.radius, self.radius * 2, self.radius * 2), 
+                                    self.start_angle, self.end_angle, 1)
+            except ZeroDivisionError:
+                pass
             
-        # 🔶 Draw hitboxes
+        
+        # Draw hitboxes
         pygame.draw.rect(self.surface, "yellow", self.expansion_hitbox_1, 2)
         pygame.draw.rect(self.surface, "yellow", self.expansion_hitbox_2, 2)
         pygame.draw.ellipse(self.surface, "yellow", self.expansion_hitbox_3, 2)
@@ -225,6 +241,32 @@ def hitline(hitbox_stationary, hitbox_mobile):
             return True
     return False
 
+def hitarc(stationary_hitbox, mobile_hitbox):
+    mx, my, mw, mh = mobile_hitbox
+    center_x, center_y, radius, start_angle, stop_angle = stationary_hitbox
+
+    corners = [
+        (mx, my),  # Top-left corner
+        (mx + mw, my),  # Top-right corner
+        (mx, my + mh),  # Bottom-left corner
+        (mx + mw, my + mh)  # Bottom-right corner
+    ]
+
+    for corner in corners:
+        corner_x, corner_y = corner
+        # Find the angle of the corner relative to the center of the arc
+        angle = -math.atan2(corner_y - center_y, corner_x - center_x)
+        if angle < 0:
+            angle += 2 * math.pi  # Normalize angle
+        
+        # Check if the corner is within the angular bounds of the arc and within the radius
+        distance_squared = (corner_x - center_x)**2 + (corner_y - center_y)**2
+        if start_angle < angle < stop_angle and distance_squared <= radius**2:
+            return True  # Collision detected (corner inside arc)
+
+    # No collision detected
+    return False
+
 def hitellipse(hitbox_stationary, hitbox_mobile):
     x_test = hitbox_mobile[0]
     y_test = -hitbox_mobile[1]
@@ -288,7 +330,7 @@ average_fps = 0
 #Inputs starting constants
 pygame.mouse.set_cursor(pygame.cursors.arrow)
 hit = False
-mouse_lock = (False, None, None, None, 0, 0)#locked, object, mouse_x, mouse_y
+mouse_lock = (False, None, None, None, 0, 0) #lock, object, mouse_x, mouse_y
 main_screen_x_center = main_screen_size_x / 2
 main_screen_y_center = main_screen_size_y / 2
 x_mouse = main_screen_x_center
@@ -350,8 +392,10 @@ def copy_shape():
     global mouse_layer
     
     oobj = shape_blockchain_ids.get(selected_blockchain_id) #original object
-    if oobj.type == "line":
-        copied_obstacle = line_object(shape_id_blockchain, oobj.x1 - 50, oobj.y1 + 50, oobj.x2 - 50, oobj.y2 + 50, oobj.color, shape_id_blockchain + 1, oobj.surface)
+    if oobj.type == "arc":
+        copied_obstacle = arc_object(shape_id_blockchain, oobj.x1 - 50, oobj.y1 + 50, oobj.x2 - 50, oobj.y2 + 50, oobj.color, shape_id_blockchain + 1, oobj.surface)
+        copied_obstacle.x3 - 50
+        copied_obstacle.y3 + 50
     elif oobj.type == "rectangle":
         copied_obstacle = rectangle_object(shape_id_blockchain, oobj.x - 50, oobj.y + 50, oobj.width, oobj.height, oobj.color, shape_id_blockchain + 1, oobj.surface)
     elif oobj.type == "ellipse":
@@ -398,21 +442,11 @@ def down_layer():
             obstacle.layer -= 1
         mouse_layer -= 1
 
-def add_line():
-    global shape_id_blockchain
-    global selected_blockchain_id
-    global mouse_layer
-    new_line = line_object(shape_id_blockchain, main_screen_x_center, main_screen_y_center, main_screen_x_center + 50, main_screen_y_center + 50, "cyan", shape_id_blockchain + 1, main_screen)
-    shape_blockchain_ids[new_line.blockchain_id] = new_line
-    selected_blockchain_id = shape_id_blockchain
-    mouse_layer = shape_id_blockchain + 1
-    shape_id_blockchain += 1
-
 def add_arc():
     global shape_id_blockchain
     global selected_blockchain_id
     global mouse_layer
-    new_arc = arc_object(shape_id_blockchain, main_screen_x_center, main_screen_y_center, main_screen_x_center + 50, main_screen_y_center + 50, "cyan", shape_id_blockchain + 1, main_screen)    
+    new_arc = arc_object(shape_id_blockchain, main_screen_x_center, main_screen_y_center, main_screen_x_center + 50, main_screen_y_center + 50, "cyan", shape_id_blockchain + 1, main_screen)
     shape_blockchain_ids[new_arc.blockchain_id] = new_arc
     selected_blockchain_id = shape_id_blockchain
     mouse_layer = shape_id_blockchain + 1
@@ -445,11 +479,11 @@ copy_icon = menu_icon("Mechatronics II/Drone Course Simulator/Assets/copy.png", 
 delete_icon = menu_icon("Mechatronics II/Drone Course Simulator/Assets/delete.png", (19.5, 522), 3.8125, "green", main_screen, delete_shape)
 up_icon = menu_icon("Mechatronics II/Drone Course Simulator/Assets/up.png", (12, 352), 3.81255, "green", main_screen, up_layer)
 down_icon = menu_icon("Mechatronics II/Drone Course Simulator/Assets/down.png", (57, 352), 3.81255, "green", main_screen, down_layer)
-line_icon = menu_icon("Mechatronics II/Drone Course Simulator/Assets/line.png", (19.5, 97), 3.81255, "green", main_screen, add_line)
+arc_icon = menu_icon("Mechatronics II/Drone Course Simulator/Assets/line.png", (19.5, 97), 3.81255, "green", main_screen, add_arc)
 square_icon = menu_icon("Mechatronics II/Drone Course Simulator/Assets/square.png", (19.5, 182), 3.81255, "green", main_screen, add_square)
 ellipse_icon = menu_icon("Mechatronics II/Drone Course Simulator/Assets/ellipse.png", (19.5, 267), 3.81255, "green", main_screen, add_ellipse)
 
-menu_icons = [save_icon, exit_icon, copy_icon, delete_icon, up_icon, down_icon, line_icon, square_icon, ellipse_icon]
+menu_icons = [save_icon, exit_icon, copy_icon, delete_icon, up_icon, down_icon, arc_icon, square_icon, ellipse_icon]
 
 #Exit popup
 exit_popup_width, exit_popup_height = 300, 200
@@ -550,6 +584,117 @@ class popup(object):
         self.projecting_screen.fill(self.color)
         self.projecting_screen.blit(self.rendered_text, (10, 10))
         self.screen.blit(self.projecting_screen, self.locator_rect)
+import time
+class ScrollMenu:
+    def __init__(self, x, y, width, height, font, item_list, scroll_speed=20):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.font = font
+        self.item_list = item_list
+        self.scroll_speed = scroll_speed
+        self.scroll_offset = 0
+        self.last_scroll_time = time.time()  # Track the last scroll time
+
+    def handle_scroll_event(self, event):
+        """Handle scroll events with delta time."""
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 4:  # Scroll up
+                self.scroll("up")
+            elif event.button == 5:  # Scroll down
+                self.scroll("down")
+
+    def handle_selection_event(self, event):
+        """Handle item selection on click."""
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            mouse_x, mouse_y = event.pos
+            if self.x <= mouse_x <= self.x + self.width and self.y <= mouse_y <= self.y + self.height:
+                selected_index = (mouse_y - self.y) // 40 - 1  # Find which item was clicked
+                if 0 <= selected_index < len(self.item_list):
+                    selected_file = self.item_list[selected_index]
+                    return selected_file  # Return selected item
+        return None
+
+    def draw(self, screen):
+        """Draw the scrollable menu."""
+        pygame.draw.rect(screen, "white", (self.x, self.y, self.width, self.height))
+        
+        # Draw the items in the list with scrolling
+        for i, item in enumerate(self.item_list[self.scroll_offset:]):
+            y_position = self.y + 20 + i * 40  # Adjust spacing between items
+            if y_position > self.y + self.height:
+                break
+            item_text = self.font.render(item, True, "black")
+            screen.blit(item_text, (self.x + 10, y_position))
+
+    def scroll(self, direction):
+        """Scroll the menu list with delta time."""
+        current_time = time.time()
+        delta_time = dt  # Get time difference between scroll events
+        
+        if delta_time < 0.1:  # Prevent too rapid scrolling
+            return  # Avoid updating scroll offset if the scroll is too quick
+        
+        if direction == "down" and self.scroll_offset + self.scroll_speed < len(self.item_list):
+            self.scroll_offset += self.scroll_speed
+        elif direction == "up" and self.scroll_offset - self.scroll_speed >= 0:
+            self.scroll_offset -= self.scroll_speed
+        
+        self.last_scroll_time = current_time  # Update the last scroll time
+
+class TextBox:
+    def __init__(self, x, y, width, height, font, color, bg_color, max_length=50):
+        # Initialize the position, size, font, color, etc.
+        self.rect = pygame.Rect(x, y, width, height)  # Rectangle for the text box
+        self.font = font
+        self.color = color
+        self.bg_color = bg_color
+        self.max_length = max_length  # Maximum number of characters allowed
+        self.text = ""  # Text inside the box
+        self.final_text = ""
+        self.submit = False
+        self.active = False  # Determines whether the text box is active for typing
+        self.cursor_pos = len(self.text)  # Keeps track of where the cursor is in the text
+
+    def handle_event(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            # Check if the mouse click is inside the box
+            if self.rect.collidepoint(event.pos):
+                self.active = True  # Set the text box as active
+            else:
+                self.active = False  # Deactivate if clicked outside
+        
+        if event.type == pygame.KEYDOWN:
+            if self.active:
+                if event.key == pygame.K_BACKSPACE:
+                    # Handle backspace (delete last character)
+                    self.text = self.text[:-1]
+                elif event.key == pygame.K_RETURN:
+                    # Handle enter (optional: can do something with the entered text)
+                    self.submit = True
+                elif len(self.text) < self.max_length and event.unicode.isprintable():
+                    # Add character to text if it's printable and within max length
+                    self.text += event.unicode
+
+    def draw(self, screen):
+        if self.submit:
+            self.final_text = self.text
+            self.active = False
+        # Draw the text box with its background
+        pygame.draw.rect(screen, self.bg_color, self.rect)
+        pygame.draw.rect(screen, self.color, self.rect, 2)  # Border color
+        
+        # Render the text
+        text_surface = self.font.render(self.text, True, self.color)
+        screen.blit(text_surface, (self.rect.x + 5, self.rect.y + (self.rect.height - text_surface.get_height()) // 2))
+
+        # Optionally, draw the cursor if the text box is active
+        if self.active and pygame.time.get_ticks() % 1000 < 500:  # Blink every 500ms
+            # Calculate the cursor's position after the last character
+            cursor_x = self.rect.x + 5 + self.font.size(self.text)[0]  # The width of the text
+            cursor_y = self.rect.y + (self.rect.height - self.font.get_height()) // 2
+            pygame.draw.line(screen, self.color, (cursor_x, cursor_y), (cursor_x, cursor_y + self.font.get_height()), 2)
 
 def exit_action_popup():
     global running
@@ -570,13 +715,18 @@ def critical_events():
     global main_screen_size_x
     global main_screen_size_y
     global running
+    global current_file
 
     '''Critical Events'''
+    selected_file = None
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.WINDOWRESIZED:
             main_screen_size_x, main_screen_size_y = pygame.display.get_window_size()[0], pygame.display.get_window_size()[1]
+        text_box.handle_event(event)
+        text_box_2.handle_event(event)
+        
 
 def main_screen_background():
     '''Background and Grid lines'''
@@ -695,16 +845,136 @@ counter = 0
 spup = popup(main_screen, main_screen_x_center, main_screen_y_center, 400, 300, start_read, "black", "green", "white")
 sbutton = Button(main_screen, "Get Started", main_screen_x_center, (spup.locator_rect[0] + spup.locator_rect[3]), 150, 100, "grey", "white", "black")
 
-save_options_text = "Would you like to save this map under its old name, or save as a new one?"
-save_options_popup = popup(main_screen, main_screen_x_center, main_screen_y_center, 300, 150, save_options_text, "black", "green", "white")
-save_options_popup.execute = False
-save_button = Button(main_screen, "Save", main_screen_x_center, (save_options_popup.locator_rect[1] + save_options_popup.locator_rect[3]), 150, 100, "grey", "white", "black")
-save_as_button = ""
+start_read_2 = "Would you like to coninue working on an old course, or start a new one?"
+spup2 = popup(main_screen, main_screen_x_center, main_screen_y_center, 400, 200, start_read_2, "black", "green", "white")
+sbutton2 = Button(main_screen, "New Course", main_screen_x_center - 125, (spup2.locator_rect[1] + spup2.locator_rect[3] - 35), 150, 70, "grey", "white", "black")
+sbutton3 = Button(main_screen, "Edit Course", main_screen_x_center + 125, (spup2.locator_rect[1] + spup2.locator_rect[3] - 35), 150, 70, "grey", "white", "black")
+spup2.execute = False
 
+new_course_read = "Enter the name for your course"
+new_course_popup = popup(main_screen, main_screen_x_center, main_screen_y_center, 400, 200, new_course_read, "black", "green", "white")
+text_box = TextBox(new_course_popup.locator_rect[0], new_course_popup.locator_rect[1] + 80, 400, 40, info_font, "black", "white")
+new_course_finish_button = Button(main_screen, "Finish", main_screen_x_center, (new_course_popup.locator_rect[1] + new_course_popup.locator_rect[3] - 35), 150, 70, "grey", "white", "black")
+new_course_popup.execute = False
+
+edit_course_read = "Enter the name for the course you would like to edit"
+edit_course_popup = popup(main_screen, main_screen_x_center, main_screen_y_center, 400, 300, edit_course_read, "black", "green", "white")
+all_files = os.listdir("Mechatronics II/Drone Course Simulator/Saved Maps")
+text_box_2 = TextBox(new_course_popup.locator_rect[0], new_course_popup.locator_rect[1] + 80, 400, 40, info_font, "black", "white")
+edit_course_finish_button = Button(main_screen, "Finish", main_screen_x_center, (new_course_popup.locator_rect[1] + new_course_popup.locator_rect[3] - 35), 150, 70, "grey", "white", "black")
+edit_course_popup.execute = False
+
+save_options_text = "Would you like to save this map under its old name, or save as a new one?"
+save_options_popup = popup(main_screen, main_screen_x_center, main_screen_y_center, 400, 200, save_options_text, "black", "green", "white")
+save_options_popup.execute = False
+save_button = Button(main_screen, "Save", main_screen_x_center - 125, (save_options_popup.locator_rect[1] + save_options_popup.locator_rect[3] - 35), 150, 70, "grey", "white", "black")
+save_as_button = Button(main_screen, "Save As", main_screen_x_center + 125, (save_options_popup.locator_rect[1] + save_options_popup.locator_rect[3] - 35), 150, 70, "grey", "white", "black")
 
 saving_popup = popup(main_screen, main_screen_x_center, main_screen_y_center, 200, 100, "Saving", "black", "green", "white")
 saving_popup.execute = False
-add_arc()
+
+def save_current_course():
+    # Open the CSV file in write mode
+    with open(current_file, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        
+        # Write headers to the CSV file
+        writer.writerow(['Key', 'ID', 'Type', 'Layer', 'X', 'Y'])
+
+        # Loop through each item in the obstacle_dict
+        for key, obj in shape_blockchain_ids.items():
+
+            if isinstance(obj, arc_object):
+                # Collect common attributes
+                data = [
+                    key,                # ID (key in dictionary)
+                    obj.blockchain_id,
+                    obj.type,
+                    obj.layer,
+                    obj.x,
+                    obj.y,
+                    obj.x1,
+                    obj.y1,
+                    obj.x2,
+                    obj.y2,
+                    obj.x3,
+                    obj.y3,
+                    obj.color,
+                    obj.surface,
+                    obj.hitbox,
+                    obj.expansion_hitbox_1,
+                    obj.expansion_hitbox_2,
+                    obj.expansion_hitbox_3,
+                    obj.can_lock,
+                    obj.locked,
+                    obj.start_angle,
+                    obj.end_angle,
+                    obj.selector_angle   
+                    ]
+
+            else:
+                data = [
+                    key,                # ID (key in dictionary)
+                    obj.blockchain_id,           # Type (arc, ellipse, or rect)
+                    obj.type,             # x1
+                    obj.layer,             # y1
+                    obj.x,             # x2
+                    obj.y,             # y2
+                    obj.width,          # color
+                    obj.height,          # layer
+                    obj.color,
+                    obj.surface,
+                    obj.hitbox,
+                    obj.expansion_hitbox
+                    ]
+
+            # Write the row to the CSV file
+            writer.writerow(data)
+
+
+def process_file_load(file):
+     global mouse_layer
+     global shape_id_blockchain
+     global selected_blockchain_id
+
+
+     with open(file, mode='r', newline='') as file:
+        reader = csv.reader(file)
+        next(reader)  # Skip the header row
+        
+        """new_arc = arc_object(shape_id_blockchain, main_screen_x_center, main_screen_y_center, main_screen_x_center + 50, main_screen_y_center + 50, "cyan", shape_id_blockchain + 1, main_screen)
+            shape_blockchain_ids[new_arc.blockchain_id] = new_arc"""
+
+        for row in reader:
+            if row[2] == "arc":
+                new_arc = arc_object(int(row[1]), float(row[6]), float(row[7]), float(row[8]), float(row[9]), row[12], int(row[3]), main_screen)
+                new_arc.x3 = float(row[10])
+                new_arc.y3 = float(row[11])
+                shape_blockchain_ids[int(row[0])] = new_arc
+
+                selected_blockchain_id = int(row[0])
+                mouse_layer = shape_id_blockchain + 1
+                shape_id_blockchain += 1
+
+
+            elif row[2] == "rectangle":
+                new_rectangle = rectangle_object(int(row[1]), float(row[4]), float(row[5]), float(row[6]), float(row[7]), row[8], int(row[3]), main_screen)
+                shape_blockchain_ids[int(row[0])] = new_rectangle
+
+                selected_blockchain_id = int(row[0])
+                mouse_layer = shape_id_blockchain + 1
+                shape_id_blockchain += 1
+
+            elif row[2] == "ellipse":
+                new_ellipse = ellipse_object(int(row[1]), float(row[4]), float(row[5]), float(row[6]), float(row[7]), row[8], int(row[3]), main_screen)
+                shape_blockchain_ids[int(row[0])] = new_ellipse
+
+                selected_blockchain_id = int(row[0])
+                mouse_layer = shape_id_blockchain + 1
+                shape_id_blockchain += 1
+
+
+current_file = None
 """MAIN GAMELOOP"""
 while running:  
     critical_events()
@@ -718,17 +988,71 @@ while running:
         sbutton.draw()
         if sbutton.is_clicked():
             spup.execute = False
+            spup2.execute = True
+    
+    elif spup2.execute:
+        spup2.draw()
+        sbutton2.draw()
+        sbutton3.draw()
+        if sbutton2.is_clicked():
+            spup2.execute = False
+            new_course_popup.execute = True
+
+        elif sbutton3.is_clicked():
+            spup2.execute = False
+            edit_course_popup.execute = True
+    
+    elif new_course_popup.execute:
+        new_course_popup.draw()
+        new_course_finish_button.draw()
+        text_box.draw(main_screen)
+
+        if new_course_finish_button.is_clicked():
+            text_box.submit = True
+
+        elif text_box.submit:
+            new_course_name = text_box.final_text
+            new_course_popup.execute = False
+
+            # Define the path manually
+            filepath = f"Mechatronics II/Drone Course Simulator/Saved Maps/{new_course_name}.csv"
+
+            # Create an empty CSV file
+            with open(filepath, "w") as file:
+                pass  # Just creates the file without writing anything`
+
+            current_file = filepath
+    
+    elif edit_course_popup.execute:
+        edit_course_popup.draw()
+        edit_course_finish_button.draw()
+        text_box_2.draw(main_screen)
+
+        if edit_course_finish_button.is_clicked():
+            text_box_2.submit = True
+
+        elif text_box_2.submit:
+            edit_course_name = f"{text_box_2.final_text}.csv"
+            if edit_course_name not in all_files:
+                text_box_2.submit = False
+                text_box_2.text = ""
+            else:
+                current_file = f"Mechatronics II/Drone Course Simulator/Saved Maps/{edit_course_name}"
+
+                process_file_load(current_file)
+
+                edit_course_popup.execute = False
+
 
     elif save_options_popup.execute:
         save_options_popup.draw()
         save_button.draw()
-        counter += dt
-        if counter >= 2:
-            save_options_popup.execute = False
-            counter = 0
-            saved = True
-    else:
-
+        save_as_button.draw()
+        
+        if save_button.is_clicked():
+            save_current_course()
+            
+    else:  
         for icon in menu_icons:
             if hitbox(icon.hitbox, mouse_hitbox):
                 highlight_box = (icon.hitbox[0] - 2, icon.hitbox[1] - 2, icon.hitbox[2] + 4, icon.hitbox[3] + 4)
@@ -743,7 +1067,7 @@ while running:
         for shape in obstacles:
             """Calculate New Mouse layer"""
             if not (moving or altering_point_1 or altering_point_2 or altering_point_3 or expanding):
-                if shape.type == 'line' or shape.type == "arc" and (hitline(shape.hitbox, mouse_hitbox) or hitbox(shape.expansion_hitbox_1, mouse_hitbox) or hitbox(shape.expansion_hitbox_1, mouse_hitbox)):
+                if shape.type == 'arc' and (hitbox(shape.expansion_hitbox_1, mouse_hitbox) or hitbox(shape.expansion_hitbox_2, mouse_hitbox) or hitellipse(shape.expansion_hitbox_3, mouse_hitbox)):
                     if can_select and left_click:
                         mouse_layer = shape.layer
                         selected_blockchain_id = shape.blockchain_id
@@ -763,59 +1087,7 @@ while running:
 
             """Change Shape Sizes"""
             #Hehe later (needs to be run before center movements or the line object blows up due to necessary selection tolerance)
-            if shape.type == 'line':
-                if (hitbox(shape.expansion_hitbox_1, mouse_hitbox) or altering_point_1) and not (moving or altering_point_2) and mouse_layer == shape.layer:
-                    if left_click:
-                        altering_point_1 = True
-                        expanding = True
-                        shape.x1 += change_x
-                        shape.y1 += change_y
-                        if not mouse_lock[0]:
-                            mouse_lock = (True, shape, shape.x1, shape.y1, x_mouse, y_mouse)
-                    else:
-                        altering_point_1 = False
-                        expanding = False
-                        mouse_lock = (False, None, None, None, 0, 0)
-
-                if (hitbox(shape.expansion_hitbox_2, mouse_hitbox) or altering_point_2) and not (moving or altering_point_1) and mouse_layer == shape.layer:
-                    if left_click:
-                        altering_point_2 = True
-                        expanding = True
-                        shape.x2 += change_x
-                        shape.y2 += change_y
-
-                        if not mouse_lock[0]:
-                            mouse_lock = (True, shape, shape.x2, shape.y2, x_mouse, y_mouse)
-                    else:
-                        mouse_lock = (False, None, None, None, 0, 0)
-                        altering_point_2 = False
-                        expanding = False
-                
-                if moving:
-                    left_x = min(shape.expansion_hitbox_1[0], shape.expansion_hitbox_2[0])
-                    top_y = min(shape.expansion_hitbox_1[1], shape.expansion_hitbox_2[1])
-                    width = abs(shape.expansion_hitbox_1[0] - shape.expansion_hitbox_2[0]) + 20
-                    height = abs(shape.expansion_hitbox_1[1] - shape.expansion_hitbox_2[1]) + 20
-                    hit = hitborder((left_x, top_y, width, height))
-                    if hit[2]:
-                        shape.x += hit[0]
-                        shape.y += hit[1]
-                else:
-                    hit_1 = hitborder(shape.expansion_hitbox_1)
-                    hit_2 = hitborder(shape.expansion_hitbox_2)
-                    if hit_1[2]:
-                        shape.x1 += hit_1[0]
-                        shape.y1 += hit_1[1]
-                    if hit_2[2]:
-                        shape.x2 += hit_2[0]
-                        shape.y2 += hit_2[1]
-                    
-                    if snap_mode:
-                        shape.x1, shape.y1 = snap_mode_correct(shape.x1, shape.y1)
-                        shape.x2, shape.y2 = snap_mode_correct(shape.x2, shape.y2)
-        
-
-            elif shape.type == 'arc':
+            if shape.type == 'arc':
                 if (hitbox(shape.expansion_hitbox_1, mouse_hitbox) or altering_point_1) and not (moving or altering_point_2 or altering_point_3) and mouse_layer == shape.layer:
                     if left_click:
                         altering_point_1 = True
@@ -845,12 +1117,15 @@ while running:
 
                 if (hitellipse(shape.expansion_hitbox_3, mouse_hitbox) or altering_point_3) and not (moving or altering_point_1 or altering_point_2) and mouse_layer == shape.layer:
                             if left_click:
+                                shape.can_lock = False
+                                shape_lock = False
                                 altering_point_3 = True
                                 expanding = True
                                 shape.x3 += change_x
                                 shape.y3 += change_y
                             
                             else:
+                                shape.can_lock = True
                                 mouse_lock = (False, None, None, None, 0, 0)
                                 altering_point_3 = False
                                 expanding = False
@@ -904,14 +1179,6 @@ while running:
                         else:
                             shape.height = 20
 
-                        if shape_lock[0]:
-                            if shape.hitbox[0] != shape_lock[1] or shape.hitbox[1] + shape.hitbox[3] != shape_lock[2]:
-                                shape.x += shape_lock[1] - shape.hitbox[0]
-                                shape.y += shape_lock[2] - (shape.hitbox[1] + shape.hitbox[3])
-
-                        if not shape_lock[0]:
-                            shape_lock = (True, shape.hitbox[0], shape.hitbox[1] + shape.hitbox[3])
-
                         if not mouse_lock[0]:
                             mouse_lock = (True, shape, shape.expansion_hitbox[0], shape.expansion_hitbox[1], x_mouse, y_mouse)
                     else:
@@ -944,7 +1211,7 @@ while running:
                         shape.y += (result[1] - shape.expansion_hitbox[1]) / 2
 
             """Move Shape Centers"""
-            if shape.type == 'line':
+            if shape.type == 'arc' and shape.locked:
                 if (hitline(shape.hitbox, mouse_hitbox) or moving) and not (altering_point_1 or altering_point_2 or expanding) and mouse_layer == shape.layer:
                     if left_click:
                         moving = True
@@ -952,22 +1219,6 @@ while running:
                         shape.x2 += change_x
                         shape.y1 += change_y
                         shape.y2 += change_y
-                        if not mouse_lock[0]:
-                            mouse_lock = (True, shape, shape.x, shape.y, x_mouse, y_mouse)
-                    else:
-                        mouse_lock = (False, None, None, None, 0, 0)
-                        moving = False
-            
-            elif shape.type == "arc":
-                if (hitline(shape.hitbox, mouse_hitbox) or moving) and not (altering_point_1 or altering_point_2 or expanding) and mouse_layer == shape.layer:
-                    if left_click:
-                        moving = True
-                        shape.x1 += change_x
-                        shape.x2 += change_x
-                        shape.y1 += change_y
-                        shape.y2 += change_y
-                        shape.x3 += change_x
-                        shape.y3 += change_y
                         if not mouse_lock[0]:
                             mouse_lock = (True, shape, shape.x, shape.y, x_mouse, y_mouse)
                     else:
@@ -997,6 +1248,7 @@ while running:
                     else:
                         mouse_lock = (False, None, None, None, 0, 0)
                         moving = False
+
     gametime_runner()
     
 
