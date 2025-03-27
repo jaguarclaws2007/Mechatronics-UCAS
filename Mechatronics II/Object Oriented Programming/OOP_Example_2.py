@@ -43,7 +43,7 @@ for _ in range(10):             #Repeat 10 times
     person = RandomPerson()     #Make a random person
     print(person)               #Use changed dunder method str through print to print
 
-#Logical layout for assignment #8
+# Logical layout for assignment #8
 
 """
 person class                        #define RandomPerson class (same as above but without the example age method)

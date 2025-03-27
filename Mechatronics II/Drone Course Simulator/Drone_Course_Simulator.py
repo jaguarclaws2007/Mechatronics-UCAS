@@ -3,6 +3,7 @@ import pygame
 import math
 import csv
 import os
+from random import randint
 pygame.init()
 
 '''Shape Classes'''
@@ -975,6 +976,70 @@ def process_file_load(file):
 
 
 current_file = None
+
+
+
+
+
+
+class Propellor:
+    def __init__(self, path, center_coordinates, scale_factor, rotation_speed, screen):
+        self.path = path
+        self.center_coordinates = center_coordinates
+        self.scale_factor = scale_factor
+        self.screen = screen
+
+        self.icon = pygame.image.load(self.path).convert_alpha()
+        self.icon_width = self.icon.get_size()[0]
+        self.icon_height = self.icon.get_size()[1]
+        self.final_size = (int(self.icon_width * self.scale_factor), int(self.icon_height * self.scale_factor))
+        self.icon_final = pygame.transform.scale(self.icon, self.final_size)
+
+        self.angle = randint(0, 179)
+        self.rotation_speed = rotation_speed
+
+    def draw(self):
+        """ Draw the propeller with center-based mounting and delta time-based rotation. """
+        # Rotate the image
+        rotated_image = pygame.transform.rotate(self.icon_final, self.angle)
+
+        # Get the rotated image's rect and center it at the given coordinates
+        rect = rotated_image.get_rect(center=self.center_coordinates)
+        self.screen.blit(rotated_image, rect)
+
+        # Update the angle
+        self.angle = (self.angle + self.rotation_speed * dt) % 360
+
+class Drone:
+    def __init__(self, obstacle_map, center_coordinates, orientation):
+        self.sprite_path = "Mechatronics II/Drone Course Simulator/Assets/Drone_Disconnected_No_Prop.png"
+        self.center_coordinates = (center_coordinates[0] + newX, center_coordinates[1])  # Now the center of the drone
+        self.scale_factor = 2.5
+        self.screen = main_screen
+        self.obstacle_map = obstacle_map
+        self.orientation = orientation
+        self.speed_multipler = 1
+
+        # Load and scale image
+        self.icon = pygame.image.load(self.sprite_path).convert_alpha()
+        self.icon_width, self.icon_height = self.icon.get_size()
+        self.final_size = (int(self.icon_width * self.scale_factor), int(self.icon_height * self.scale_factor))
+        self.icon_final = pygame.transform.scale(self.icon, self.final_size)
+
+    def draw(self):
+        """ Draw the drone centered on its coordinates """
+        # Get the rect and position it based on the center
+        rect = self.icon_final.get_rect(center=self.center_coordinates)
+        self.screen.blit(self.icon_final, rect)
+
+speed = 1600
+prop1 = Propellor("Mechatronics II/Drone Course Simulator/Assets/Prop.png", (25 + newX, 100), 2.5, speed, main_screen)
+prop2 = Propellor("Mechatronics II/Drone Course Simulator/Assets/Prop.png", (92.5 + newX, 100), 2.5, speed, main_screen)
+prop3 = Propellor("Mechatronics II/Drone Course Simulator/Assets/Prop.png", (25 + newX, 175), 2.5, speed, main_screen)
+prop4 = Propellor("Mechatronics II/Drone Course Simulator/Assets/Prop.png", (92.5 + newX, 175), 2.5, speed, main_screen)
+drone_propellors = [prop1, prop2, prop3, prop4]
+tello = Drone(None, (60, 135), None)
+
 """MAIN GAMELOOP"""
 while running:  
     critical_events()
@@ -982,6 +1047,10 @@ while running:
     main_screen_menu()
     get_user_inputs()
     draw_obstacles()
+    tello.draw()
+    for prop in drone_propellors:
+        prop.draw()
+    
 
     if spup.execute:
         spup.draw()
