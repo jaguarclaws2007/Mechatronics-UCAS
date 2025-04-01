@@ -2,9 +2,81 @@
 import pygame
 import math
 import csv
+import time
 import os
 from random import randint
 pygame.init()
+class Game():
+    def __init__(self):
+        '''Start Variables'''
+        #Main Screen starting constants
+        self.start_flag = True
+        self.main_screen_size_x = 750
+        self.main_screen_size_y = 750
+        self.main_screen = pygame.display.set_mode((self.main_screen_size_x, self.main_screen_size_y), pygame.RESIZABLE)
+        self.background_color = (0, 33, 130)
+        self.accent_color = (236, 206, 247)
+        self.blueprint_spacing = 25
+        self.menu_width = 100
+        self.tab_height = 85
+        self.newX = self.menu_width + 1
+
+        #Gametime starting constants
+        self.game_font = pygame.freetype.SysFont("Arial", 30)
+        self.saved = False
+        self.exit_flag = False
+        self.running = True
+        self.dt = 0
+        self.clock = pygame.time.Clock()
+        self.times_averaged = 0
+        self.average_fps = 0
+
+        #Inputs starting constants
+        pygame.mouse.set_cursor(pygame.cursors.arrow)
+        self.hit = False
+        self.mouse_lock = (False, None, None, None, 0, 0) #lock, object, mouse_x, mouse_y
+        self.main_screen_x_center = self.main_screen_size_x / 2
+        self.main_screen_y_center = self.main_screen_size_y / 2
+        self.x_mouse = self.main_screen_x_center
+        self.y_mouse = self.main_screen_y_center
+        self.mouse_hitbox = (self.x_mouse, self.y_mouse, 0, 0)
+        pygame.mouse.set_pos(self.x_mouse, self.y_mouse)
+        self.mouse_layer = 1
+        self.snap_mode = False
+        self.selected_blockchain_id = 0
+        self.obstacles = ()
+
+        #Objects starting constants
+        self.shape_id_blockchain = 0
+        self.shape_lock = (False, None, None)
+        self.shape_blockchain_ids = {}
+        self.moving = False
+        self.altering_point_1 = False
+        self.altering_point_2 = False
+        self.altering_point_3 = False
+        self.expanding = False
+        self.can_select = True
+        self.select_countdown = 0
+
+        #Fonts
+        self.title_font = pygame.font.Font(None, 48)
+        self.info_font = pygame.font.SysFont("Arial", 28)
+
+        self.change_x_count = 0
+        self.change_y_count = 0
+        self.left_click = False
+
+        self.selected_file = None
+        self.current_file = None
+        self.keys = []
+        self.old_x = 0
+        self.old_y = 0
+        self.change_x = 0
+        self.change_y = 0
+
+        self.type = None
+
+game = Game()
 
 '''Shape Classes'''
 class arc_object(object):
@@ -218,10 +290,6 @@ class rectangle_object(object):
         pygame.draw.rect(self.surface, self.color, self.hitbox)
         pygame.draw.rect(self.surface, "yellow", self.expansion_hitbox, 2)
 
-class drone(object):
-    def __init__(self, map_name):
-        self.map_name = map_name
-
 '''Detection'''
 def hitbox(hitbox_stationary, hitbox_mobile):
     if hitbox_mobile[0] >= hitbox_stationary[0] and hitbox_mobile[0] + hitbox_mobile[2] <= hitbox_stationary[0] + hitbox_stationary[2]:
@@ -295,65 +363,15 @@ def hitborder(hitbox):
     right_x = hitbox[0] + hitbox[2]
     top_y = hitbox[1]
     bottom_y = hitbox[1] + hitbox[3]
-    if left_x < newX: x = newX - left_x
-    elif right_x > main_screen_size_x: x = main_screen_size_x - right_x
+    if left_x < game.newX: x = game.newX - left_x
+    elif right_x > game.main_screen_size_x: x = game.main_screen_size_x - right_x
     if top_y < 0: y = -top_y
-    elif bottom_y > main_screen_size_y: y = main_screen_size_y - bottom_y
+    elif bottom_y > game.main_screen_size_y: y = game.main_screen_size_y - bottom_y
     
     if y != 0 or x != 0:
         hit = True
     changes = (x, y, hit)
     return(changes)
-
-'''Start Variables'''
-#Main Screen starting constants
-start_flag = True
-main_screen_size_x = 750
-main_screen_size_y = 750
-main_screen = pygame.display.set_mode((main_screen_size_x, main_screen_size_y), pygame.RESIZABLE)
-background_color = (0, 33, 130)
-accent_color = (236, 206, 247)
-blueprint_spacing = 25
-menu_width = 100
-tab_height = 85
-newX = menu_width + 1
-
-#Gametime starting constants
-game_font = pygame.freetype.SysFont("Arial", 30)
-saved = False
-exit_flag = False
-running = True
-dt = 0
-clock = pygame.time.Clock()
-times_averaged = 0
-average_fps = 0
-
-#Inputs starting constants
-pygame.mouse.set_cursor(pygame.cursors.arrow)
-hit = False
-mouse_lock = (False, None, None, None, 0, 0) #lock, object, mouse_x, mouse_y
-main_screen_x_center = main_screen_size_x / 2
-main_screen_y_center = main_screen_size_y / 2
-x_mouse = main_screen_x_center
-y_mouse = main_screen_y_center
-mouse_hitbox = (x_mouse, y_mouse, 0, 0)
-pygame.mouse.set_pos(x_mouse, y_mouse)
-mouse_layer = 1
-snap_mode = False
-selected_blockchain_id = 0
-obstacles = ()
-
-#Objects starting constants
-shape_id_blockchain = 0
-shape_lock = (False, None, None)
-shape_blockchain_ids = {}
-moving = False
-altering_point_1 = False
-altering_point_2 = False
-altering_point_3 = False
-expanding = False
-can_select = True
-select_countdown = 0
 class menu_icon(object):
     def __init__(self, path, mount_coordinates, scale_factor, highlight_color, screen, job_function):
         self.path = path
@@ -381,108 +399,90 @@ def save_map():
     save_options_popup.execute = True
 
 def exit_creator():
-    global running, exit_flag
-    if saved:
-        running = False
+    if game.saved:
+        game.running = False
     else:
-        exit_flag = True
+        game.exit_flag = True
 
-def copy_shape():
-    global shape_id_blockchain
-    global selected_blockchain_id
-    global mouse_layer
-    
-    oobj = shape_blockchain_ids.get(selected_blockchain_id) #original object
+def copy_shape():    
+    oobj = game.shape_blockchain_ids.get(game.selected_blockchain_id) #original object
     if oobj.type == "arc":
-        copied_obstacle = arc_object(shape_id_blockchain, oobj.x1 - 50, oobj.y1 + 50, oobj.x2 - 50, oobj.y2 + 50, oobj.color, shape_id_blockchain + 1, oobj.surface)
+        copied_obstacle = arc_object(game.shape_id_blockchain, oobj.x1 - 50, oobj.y1 + 50, oobj.x2 - 50, oobj.y2 + 50, oobj.color, game.shape_id_blockchain + 1, oobj.surface)
         copied_obstacle.x3 - 50
         copied_obstacle.y3 + 50
     elif oobj.type == "rectangle":
-        copied_obstacle = rectangle_object(shape_id_blockchain, oobj.x - 50, oobj.y + 50, oobj.width, oobj.height, oobj.color, shape_id_blockchain + 1, oobj.surface)
+        copied_obstacle = rectangle_object(game.shape_id_blockchain, oobj.x - 50, oobj.y + 50, oobj.width, oobj.height, oobj.color, game.shape_id_blockchain + 1, oobj.surface)
     elif oobj.type == "ellipse":
-        copied_obstacle = ellipse_object(shape_id_blockchain, oobj.x - 50, oobj.y + 50, oobj.width, oobj.height, oobj.color, shape_id_blockchain + 1, oobj.surface)
+        copied_obstacle = ellipse_object(game.shape_id_blockchain, oobj.x - 50, oobj.y + 50, oobj.width, oobj.height, oobj.color, game.shape_id_blockchain + 1, oobj.surface)
 
-    shape_blockchain_ids[copied_obstacle.blockchain_id] = copied_obstacle
-    selected_blockchain_id = shape_id_blockchain
-    mouse_layer = shape_id_blockchain + 1
-    shape_id_blockchain += 1
+    game.shape_blockchain_ids[copied_obstacle.blockchain_id] = copied_obstacle
+    game.selected_blockchain_id = game.shape_id_blockchain
+    game.mouse_layer = game.shape_id_blockchain + 1
+    game.shape_id_blockchain += 1
 
 
 def delete_shape():
-    shape_blockchain_ids.pop(selected_blockchain_id, None)
+    game.shape_blockchain_ids.pop(game.selected_blockchain_id, None)
 
 def up_layer():
-    global mouse_layer
-    obstacle = shape_blockchain_ids.get(selected_blockchain_id)
+    obstacle = game.shape_blockchain_ids.get(game.selected_blockchain_id)
     higher_obstacle = None
-    for obj in shape_blockchain_ids.values():
+    for obj in game.shape_blockchain_ids.values():
         if obj.layer == obstacle.layer + 1:
-            higher_obstacle = shape_blockchain_ids.get(obj.blockchain_id)
+            higher_obstacle = game.shape_blockchain_ids.get(obj.blockchain_id)
             higher_obstacle.layer -= 1
             obstacle.layer += 1
             break
     if higher_obstacle == None:
         obstacle.layer += 1
-    mouse_layer += 1
+    game.mouse_layer += 1
     
-
 def down_layer():
-    global mouse_layer
-    obstacle = shape_blockchain_ids.get(selected_blockchain_id)
+    obstacle = game.shape_blockchain_ids.get(game.selected_blockchain_id)
     lower_obstacle = None
     if obstacle.layer == 1:
         return
     else:
-        for obj in shape_blockchain_ids.values():
+        for obj in game.shape_blockchain_ids.values():
             if obj.layer == obstacle.layer -1:
-                lower_obstacle = shape_blockchain_ids.get(obj.blockchain_id)
+                lower_obstacle = game.shape_blockchain_ids.get(obj.blockchain_id)
                 lower_obstacle.layer += 1
                 obstacle.layer -= 1
                 break
         if lower_obstacle == None:
             obstacle.layer -= 1
-        mouse_layer -= 1
+        game.mouse_layer -= 1
 
 def add_arc():
-    global shape_id_blockchain
-    global selected_blockchain_id
-    global mouse_layer
-    new_arc = arc_object(shape_id_blockchain, main_screen_x_center, main_screen_y_center, main_screen_x_center + 50, main_screen_y_center + 50, "cyan", shape_id_blockchain + 1, main_screen)
-    shape_blockchain_ids[new_arc.blockchain_id] = new_arc
-    selected_blockchain_id = shape_id_blockchain
-    mouse_layer = shape_id_blockchain + 1
-    shape_id_blockchain += 1
+    new_arc = arc_object(game.shape_id_blockchain, game.main_screen_x_center, game.main_screen_y_center, game.main_screen_x_center + 50, game.main_screen_y_center + 50, "cyan", game.shape_id_blockchain + 1, game.main_screen)
+    game.shape_blockchain_ids[new_arc.blockchain_id] = new_arc
+    game.selected_blockchain_id = game.shape_id_blockchain
+    game.mouse_layer = game.shape_id_blockchain + 1
+    game.shape_id_blockchain += 1
 
 def add_square():
-    global shape_id_blockchain
-    global selected_blockchain_id
-    global mouse_layer
-    new_rectangle = rectangle_object(shape_id_blockchain, main_screen_x_center, main_screen_y_center, 75, 75, "green", shape_id_blockchain + 1, main_screen)
-    shape_blockchain_ids[new_rectangle.blockchain_id] = new_rectangle
-    selected_blockchain_id = shape_id_blockchain
-    mouse_layer = shape_id_blockchain + 1
-    shape_id_blockchain += 1
-
+    new_rectangle = rectangle_object(game.shape_id_blockchain, game.main_screen_x_center, game.main_screen_y_center, 75, 75, "green", game.shape_id_blockchain + 1, game.main_screen)
+    game.shape_blockchain_ids[new_rectangle.blockchain_id] = new_rectangle
+    game.selected_blockchain_id = game.shape_id_blockchain
+    game.mouse_layer = game.shape_id_blockchain + 1
+    game.shape_id_blockchain += 1
 
 def add_ellipse():
-    global shape_id_blockchain
-    global selected_blockchain_id
-    global mouse_layer
-    new_ellipse = ellipse_object(shape_id_blockchain, main_screen_x_center, main_screen_y_center, 100, 100, "purple", shape_id_blockchain + 1, main_screen)
-    shape_blockchain_ids[new_ellipse.blockchain_id] = new_ellipse
-    selected_blockchain_id = shape_id_blockchain
-    mouse_layer = shape_id_blockchain + 1
-    shape_id_blockchain += 1
+    new_ellipse = ellipse_object(game.shape_id_blockchain, game.main_screen_x_center, game.main_screen_y_center, 100, 100, "purple", game.shape_id_blockchain + 1, game.main_screen)
+    game.shape_blockchain_ids[new_ellipse.blockchain_id] = new_ellipse
+    game.selected_blockchain_id = game.shape_id_blockchain
+    game.mouse_layer = game.shape_id_blockchain + 1
+    game.shape_id_blockchain += 1
 
-save_icon = menu_icon("Mechatronics II/Drone Course Simulator/Assets/save.png", (19.5, 12), 3.8125, "green", main_screen, save_map)
-exit_icon = menu_icon("Mechatronics II/Drone Course Simulator/Assets/exit.png", (19.5, 607), 3.8125, "green", main_screen, exit_creator)
-copy_icon = menu_icon("Mechatronics II/Drone Course Simulator/Assets/copy.png", (19.5, 437), 3.8125, "green", main_screen, copy_shape)
-delete_icon = menu_icon("Mechatronics II/Drone Course Simulator/Assets/delete.png", (19.5, 522), 3.8125, "green", main_screen, delete_shape)
-up_icon = menu_icon("Mechatronics II/Drone Course Simulator/Assets/up.png", (12, 352), 3.81255, "green", main_screen, up_layer)
-down_icon = menu_icon("Mechatronics II/Drone Course Simulator/Assets/down.png", (57, 352), 3.81255, "green", main_screen, down_layer)
-arc_icon = menu_icon("Mechatronics II/Drone Course Simulator/Assets/line.png", (19.5, 97), 3.81255, "green", main_screen, add_arc)
-square_icon = menu_icon("Mechatronics II/Drone Course Simulator/Assets/square.png", (19.5, 182), 3.81255, "green", main_screen, add_square)
-ellipse_icon = menu_icon("Mechatronics II/Drone Course Simulator/Assets/ellipse.png", (19.5, 267), 3.81255, "green", main_screen, add_ellipse)
+save_icon = menu_icon("Mechatronics II/Drone Course Simulator/Assets/save.png", (19.5, 12), 3.8125, "green", game.main_screen, save_map)
+exit_icon = menu_icon("Mechatronics II/Drone Course Simulator/Assets/exit.png", (19.5, 607), 3.8125, "green", game.main_screen, exit_creator)
+copy_icon = menu_icon("Mechatronics II/Drone Course Simulator/Assets/copy.png", (19.5, 437), 3.8125, "green", game.main_screen, copy_shape)
+delete_icon = menu_icon("Mechatronics II/Drone Course Simulator/Assets/delete.png", (19.5, 522), 3.8125, "green", game.main_screen, delete_shape)
+up_icon = menu_icon("Mechatronics II/Drone Course Simulator/Assets/up.png", (12, 352), 3.81255, "green", game.main_screen, up_layer)
+down_icon = menu_icon("Mechatronics II/Drone Course Simulator/Assets/down.png", (57, 352), 3.81255, "green", game.main_screen, down_layer)
+arc_icon = menu_icon("Mechatronics II/Drone Course Simulator/Assets/line.png", (19.5, 97), 3.81255, "green", game.main_screen, add_arc)
+square_icon = menu_icon("Mechatronics II/Drone Course Simulator/Assets/square.png", (19.5, 182), 3.81255, "green", game.main_screen, add_square)
+ellipse_icon = menu_icon("Mechatronics II/Drone Course Simulator/Assets/ellipse.png", (19.5, 267), 3.81255, "green", game.main_screen, add_ellipse)
 
 menu_icons = [save_icon, exit_icon, copy_icon, delete_icon, up_icon, down_icon, arc_icon, square_icon, ellipse_icon]
 
@@ -490,10 +490,7 @@ menu_icons = [save_icon, exit_icon, copy_icon, delete_icon, up_icon, down_icon, 
 exit_popup_width, exit_popup_height = 300, 200
 exit_popup = pygame.Surface((exit_popup_width, exit_popup_height))
 exit_popup.fill((200, 200, 200))
-exit_popup_x, exit_popup_y = (main_screen_size_x - exit_popup_width) / 2, (main_screen_size_y - exit_popup_height) / 2
-
-title_font = pygame.font.Font(None, 48)
-info_font = pygame.font.SysFont("Arial", 28)
+exit_popup_x, exit_popup_y = (game.main_screen_size_x - exit_popup_width) / 2, (game.main_screen_size_y - exit_popup_height) / 2
 
 class Button(object):
     def __init__(self, screen, text, x_center, y_center, width, height, color, highlight_color, text_color):
@@ -509,7 +506,7 @@ class Button(object):
 
         self.locator_rect = pygame.Rect(x_center - width / 2, y_center - height / 2, width, height)
         self.projecting_screen = pygame.Surface((width, height))
-        self.rendered_text = info_font.render(text, True, text_color)
+        self.rendered_text = game.info_font.render(text, True, text_color)
         self.text_width = self.rendered_text.get_rect()[2]
         self.text_height = self.rendered_text.get_rect()[3]
         self.text_rect = ((width - self.text_width) / 2, (height - self.text_height) / 2, self.text_width, self.text_height)
@@ -518,14 +515,13 @@ class Button(object):
         self.projecting_screen.fill(self.color)
         self.projecting_screen.blit(self.rendered_text, self.text_rect)
         self.screen.blit(self.projecting_screen, self.locator_rect)
-        if hitbox(self.locator_rect, mouse_hitbox):
-            pygame.draw.rect(main_screen, self.highlight_color, (self.locator_rect[0] - 2, self.locator_rect[1] - 2, self.locator_rect[2] + 4, self.locator_rect[3] + 4), 2)
+        if hitbox(self.locator_rect, game.mouse_hitbox):
+            pygame.draw.rect(game.main_screen, self.highlight_color, (self.locator_rect[0] - 2, self.locator_rect[1] - 2, self.locator_rect[2] + 4, self.locator_rect[3] + 4), 2)
 
     def is_clicked(self):
-        global can_select
-        if hitbox(self.locator_rect, mouse_hitbox):
-            if can_select and left_click:
-                can_select = False
+        if hitbox(self.locator_rect, game.mouse_hitbox):
+            if game.can_select and game.left_click:
+                game.can_select = False
                 return True
         else:
             return False
@@ -578,14 +574,14 @@ class popup(object):
         self.projecting_screen = pygame.Surface((width, height))
         self.execute = True
 
-        self.rendered_text = render_wrapped_text(text, info_font, text_color, width - 20)
+        self.rendered_text = render_wrapped_text(text, game.info_font, text_color, width - 20)
 
 
     def draw(self):
         self.projecting_screen.fill(self.color)
         self.projecting_screen.blit(self.rendered_text, (10, 10))
         self.screen.blit(self.projecting_screen, self.locator_rect)
-import time
+
 class ScrollMenu:
     def __init__(self, x, y, width, height, font, item_list, scroll_speed=20):
         self.x = x
@@ -632,7 +628,7 @@ class ScrollMenu:
     def scroll(self, direction):
         """Scroll the menu list with delta time."""
         current_time = time.time()
-        delta_time = dt  # Get time difference between scroll events
+        delta_time = game.dt  # Get time difference between scroll events
         
         if delta_time < 0.1:  # Prevent too rapid scrolling
             return  # Avoid updating scroll offset if the scroll is too quick
@@ -698,192 +694,169 @@ class TextBox:
             pygame.draw.line(screen, self.color, (cursor_x, cursor_y), (cursor_x, cursor_y + self.font.get_height()), 2)
 
 def exit_action_popup():
-    global running
-    global exit_flag
     showing = True
-    while showing and running:
+    while showing and game.running:
         critical_events()
         main_screen_background()
         main_screen_menu()
         get_user_inputs()
         draw_obstacles()
         exit_popup.fill((200, 200, 200))  # Clear previous renders
-        game_font.render_to(exit_popup, (10, 10), "Test", (0, 0, 0))  # Black text at position (50, 80)
-        main_screen.blit(exit_popup, (exit_popup_x, exit_popup_y))
+        game.game_font.render_to(exit_popup, (10, 10), "Test", (0, 0, 0))  # Black text at position (50, 80)
+        game.main_screen.blit(exit_popup, (exit_popup_x, exit_popup_y))
         gametime_runner()
 
 def critical_events():
-    global main_screen_size_x
-    global main_screen_size_y
-    global running
-    global current_file
-
     '''Critical Events'''
-    selected_file = None
+    game.selected_file = None
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            running = False
+            game.running = False
         if event.type == pygame.WINDOWRESIZED:
-            main_screen_size_x, main_screen_size_y = pygame.display.get_window_size()[0], pygame.display.get_window_size()[1]
+            game.main_screen_size_x, game.main_screen_size_y = pygame.display.get_window_size()[0], pygame.display.get_window_size()[1]
         text_box.handle_event(event)
         text_box_2.handle_event(event)
         
 
 def main_screen_background():
-    '''Background and Grid lines'''
-    main_screen.fill(background_color)
-    for i in range(newX + blueprint_spacing, main_screen_size_x + 1, blueprint_spacing):
-        pygame.draw.line(main_screen, accent_color, (i, 0), (i, main_screen_size_y))
-    for i in range(0, main_screen_size_y + 1, blueprint_spacing):
-        pygame.draw.line(main_screen, accent_color, (newX, i), (main_screen_size_x, i))
+    if game.type == "map_builder":
+        '''Background and Grid lines for map builder type menu'''
+        game.main_screen.fill(game.background_color)
+        for i in range(game.newX + game.blueprint_spacing, game.main_screen_size_x + 1, game.blueprint_spacing):
+            pygame.draw.line(game.main_screen, game.accent_color, (i, 0), (i, game.main_screen_size_y))
+        for i in range(0, game.main_screen_size_y + 1, game.blueprint_spacing):
+            pygame.draw.line(game.main_screen, game.accent_color, (game.newX, i), (game.main_screen_size_x, i))
+
+    elif game.type == "drone_flyer":
+        '''Background and Grid lines for drone flyer type menu'''
+        game.main_screen.fill(game.background_color)
+        for i in range(game.blueprint_spacing, game.main_screen_size_x + 1, game.blueprint_spacing):
+            pygame.draw.line(game.main_screen, game.accent_color, (i, 0), (i, game.main_screen_size_y))
+        for i in range(0, game.main_screen_size_y + 1, game.blueprint_spacing):
+            pygame.draw.line(game.main_screen, game.accent_color, (0, i), (game.main_screen_size_x, i))
 
 def main_screen_menu():
     '''Menu'''
-    pygame.draw.rect(main_screen, "black", (0, 0, menu_width, main_screen_size_y))
+    pygame.draw.rect(game.main_screen, "black", (0, 0, game.menu_width, game.main_screen_size_y))
     for i in range(9):
-        pygame.draw.line(main_screen, "white", (0, i * tab_height), (menu_width, i * tab_height))
-    pygame.draw.line(main_screen, "white", (menu_width, 0), (menu_width, main_screen_size_y))
+        pygame.draw.line(game.main_screen, "white", (0, i * game.tab_height), (game.menu_width, i * game.tab_height))
+    pygame.draw.line(game.main_screen, "white", (game.menu_width, 0), (game.menu_width, game.main_screen_size_y))
 
     for icon in menu_icons:
         icon.draw()
 
-change_x_count = 0
-change_y_count = 0
-
-
 def snap_mode_correct(x_coord, y_coord):
-    if (x_coord - newX) % blueprint_spacing >= blueprint_spacing / 2:
-        x_coord += blueprint_spacing - ((x_coord - newX) % blueprint_spacing)
-    elif (x_coord - newX) % blueprint_spacing < blueprint_spacing / 2 and (x_coord - newX) % blueprint_spacing != 0:
-        x_coord -= (x_coord - newX) % blueprint_spacing
+    if (x_coord - game.newX) % game.blueprint_spacing >= game.blueprint_spacing / 2:
+        x_coord += game.blueprint_spacing - ((x_coord - game.newX) % game.blueprint_spacing)
+    elif (x_coord - game.newX) % game.blueprint_spacing < game.blueprint_spacing / 2 and (x_coord - game.newX) % game.blueprint_spacing != 0:
+        x_coord -= (x_coord - game.newX) % game.blueprint_spacing
 
-    if (y_coord) % blueprint_spacing >= blueprint_spacing / 2:
-        y_coord += blueprint_spacing - y_coord % blueprint_spacing
-    elif y_coord % blueprint_spacing < blueprint_spacing / 2 and y_coord % blueprint_spacing != 0:
-        y_coord -= y_coord % blueprint_spacing
+    if (y_coord) % game.blueprint_spacing >= game.blueprint_spacing / 2:
+        y_coord += game.blueprint_spacing - y_coord % game.blueprint_spacing
+    elif y_coord % game.blueprint_spacing < game.blueprint_spacing / 2 and y_coord % game.blueprint_spacing != 0:
+        y_coord -= y_coord % game.blueprint_spacing
     
     return (x_coord, y_coord)
 
 
 def get_user_inputs():
-    global keys
-    global running
-    global snap_mode
-    global old_x
-    global old_y
-    global mouse_hitbox
-    global left_click
-    global change_x
-    global change_y
-    global x_mouse
-    global y_mouse
-    global change_x_count
-    global change_y_count
-
     '''Keyboard Input'''
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_x]:
-        running = False
-    if keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT]:
-        snap_mode = True
+    game.keys = pygame.key.get_pressed()
+    if game.keys[pygame.K_x]:
+        game.running = False
+    if game.keys[pygame.K_LSHIFT] or game.keys[pygame.K_RSHIFT]:
+        game.snap_mode = True
     else:
-        snap_mode = False
+        game.snap_mode = False
 
     '''Mouse Calculations'''
-    old_x = x_mouse
-    old_y = y_mouse
-    x_mouse, y_mouse = pygame.mouse.get_pos()
-    mouse_hitbox = (x_mouse, y_mouse, 0, 0)
-    left_click = list(pygame.mouse.get_pressed())[0]
+    game.old_x = game.x_mouse
+    game.old_y = game.y_mouse
+    game.x_mouse, game.y_mouse = pygame.mouse.get_pos()
+    game.mouse_hitbox = (game.x_mouse, game.y_mouse, 0, 0)
+    game.left_click = list(pygame.mouse.get_pressed())[0]
 
-    change_x = x_mouse - old_x
-    change_y = y_mouse - old_y
-    if snap_mode:
-        change_x_count += change_x
-        change_y_count += change_y
-        if abs(change_x_count) >= blueprint_spacing:
-            change_x = change_x_count
-            change_x_count = 0
+    game.change_x = game.x_mouse - game.old_x
+    game.change_y = game.y_mouse - game.old_y
+    if game.snap_mode:
+        game.change_x_count += game.change_x
+        game.change_y_count += game.change_y
+        if abs(game.change_x_count) >= game.blueprint_spacing:
+            game.change_x = game.change_x_count
+            game.change_x_count = 0
         else:
-            change_x = 0
-        if abs(change_y_count) >= blueprint_spacing:
-            change_y = change_y_count
-            change_y_count = 0
+            game.change_x = 0
+        if abs(game.change_y_count) >= game.blueprint_spacing:
+            game.change_y = game.change_y_count
+            game.change_y_count = 0
         else:
-            change_y = 0
+            game.change_y = 0
 
 def draw_obstacles():
     '''Drawing Shapes'''
-    global obstacles
-    obstacles = sorted(shape_blockchain_ids.values(), key = lambda x: x.layer)
-    for shape in obstacles:
+    game.obstacles = sorted(game.shape_blockchain_ids.values(), key = lambda x: x.layer)
+    for shape in game.obstacles:
         shape.draw()
 
 def gametime_runner():
     '''Gametime Runner'''
-    global select_countdown
-    global can_select
-    global dt
-    global times_averaged
-    global average_fps
-
-    if not can_select:
-        select_countdown += dt
-    if select_countdown >= 0.75:
-        select_countdown = 0
-        can_select = True
+    if not game.can_select:
+        game.select_countdown += game.dt
+    if game.select_countdown >= 0.75:
+        game.select_countdown = 0
+        game.can_select = True
 
     pygame.display.flip()
-    dt = clock.tick() / 1000
-    times_averaged += 1
-    if times_averaged == 0:
-        average_fps = clock.get_fps()
+    game.dt = game.clock.tick() / 1000
+    game.times_averaged += 1
+    if game.times_averaged == 0:
+        game.average_fps = game.clock.get_fps()
     else:
-        average_fps += (clock.get_fps() - average_fps) / times_averaged
+        game.average_fps += (game.clock.get_fps() - game.average_fps) / game.times_averaged
 
 start_read = "Welcome to the Tello drone simulator. Add shapes and obstacles and place them wherever you want. Hold SHIFT while moving to move in set increments."
-counter = 0
-spup = popup(main_screen, main_screen_x_center, main_screen_y_center, 400, 300, start_read, "black", "green", "white")
-sbutton = Button(main_screen, "Get Started", main_screen_x_center, (spup.locator_rect[0] + spup.locator_rect[3]), 150, 100, "grey", "white", "black")
+
+spup = popup(game.main_screen, game.main_screen_x_center, game.main_screen_y_center, 400, 300, start_read, "black", "green", "white")
+sbutton = Button(game.main_screen, "Get Started", game.main_screen_x_center, (spup.locator_rect[0] + spup.locator_rect[3]), 150, 100, "grey", "white", "black")
 
 start_read_2 = "Would you like to coninue working on an old course, or start a new one?"
-spup2 = popup(main_screen, main_screen_x_center, main_screen_y_center, 400, 200, start_read_2, "black", "green", "white")
-sbutton2 = Button(main_screen, "New Course", main_screen_x_center - 125, (spup2.locator_rect[1] + spup2.locator_rect[3] - 35), 150, 70, "grey", "white", "black")
-sbutton3 = Button(main_screen, "Edit Course", main_screen_x_center + 125, (spup2.locator_rect[1] + spup2.locator_rect[3] - 35), 150, 70, "grey", "white", "black")
+spup2 = popup(game.main_screen, game.main_screen_x_center, game.main_screen_y_center, 400, 200, start_read_2, "black", "green", "white")
+sbutton2 = Button(game.main_screen, "New Course", game.main_screen_x_center - 125, (spup2.locator_rect[1] + spup2.locator_rect[3] - 35), 150, 70, "grey", "white", "black")
+sbutton3 = Button(game.main_screen, "Edit Course", game.main_screen_x_center + 125, (spup2.locator_rect[1] + spup2.locator_rect[3] - 35), 150, 70, "grey", "white", "black")
 spup2.execute = False
 
 new_course_read = "Enter the name for your course"
-new_course_popup = popup(main_screen, main_screen_x_center, main_screen_y_center, 400, 200, new_course_read, "black", "green", "white")
-text_box = TextBox(new_course_popup.locator_rect[0], new_course_popup.locator_rect[1] + 80, 400, 40, info_font, "black", "white")
-new_course_finish_button = Button(main_screen, "Finish", main_screen_x_center, (new_course_popup.locator_rect[1] + new_course_popup.locator_rect[3] - 35), 150, 70, "grey", "white", "black")
+new_course_popup = popup(game.main_screen, game.main_screen_x_center, game.main_screen_y_center, 400, 200, new_course_read, "black", "green", "white")
+text_box = TextBox(new_course_popup.locator_rect[0], new_course_popup.locator_rect[1] + 80, 400, 40, game.info_font, "black", "white")
+new_course_finish_button = Button(game.main_screen, "Finish", game.main_screen_x_center, (new_course_popup.locator_rect[1] + new_course_popup.locator_rect[3] - 35), 150, 70, "grey", "white", "black")
 new_course_popup.execute = False
 
 edit_course_read = "Enter the name for the course you would like to edit"
-edit_course_popup = popup(main_screen, main_screen_x_center, main_screen_y_center, 400, 300, edit_course_read, "black", "green", "white")
+edit_course_popup = popup(game.main_screen, game.main_screen_x_center, game.main_screen_y_center, 400, 300, edit_course_read, "black", "green", "white")
 all_files = os.listdir("Mechatronics II/Drone Course Simulator/Saved Maps")
-text_box_2 = TextBox(new_course_popup.locator_rect[0], new_course_popup.locator_rect[1] + 80, 400, 40, info_font, "black", "white")
-edit_course_finish_button = Button(main_screen, "Finish", main_screen_x_center, (new_course_popup.locator_rect[1] + new_course_popup.locator_rect[3] - 35), 150, 70, "grey", "white", "black")
+text_box_2 = TextBox(new_course_popup.locator_rect[0], new_course_popup.locator_rect[1] + 80, 400, 40, game.info_font, "black", "white")
+edit_course_finish_button = Button(game.main_screen, "Finish", game.main_screen_x_center, (new_course_popup.locator_rect[1] + new_course_popup.locator_rect[3] - 35), 150, 70, "grey", "white", "black")
 edit_course_popup.execute = False
 
 save_options_text = "Would you like to save this map under its old name, or save as a new one?"
-save_options_popup = popup(main_screen, main_screen_x_center, main_screen_y_center, 400, 200, save_options_text, "black", "green", "white")
+save_options_popup = popup(game.main_screen, game.main_screen_x_center, game.main_screen_y_center, 400, 200, save_options_text, "black", "green", "white")
 save_options_popup.execute = False
-save_button = Button(main_screen, "Save", main_screen_x_center - 125, (save_options_popup.locator_rect[1] + save_options_popup.locator_rect[3] - 35), 150, 70, "grey", "white", "black")
-save_as_button = Button(main_screen, "Save As", main_screen_x_center + 125, (save_options_popup.locator_rect[1] + save_options_popup.locator_rect[3] - 35), 150, 70, "grey", "white", "black")
+save_button = Button(game.main_screen, "Save", game.main_screen_x_center - 125, (save_options_popup.locator_rect[1] + save_options_popup.locator_rect[3] - 35), 150, 70, "grey", "white", "black")
+save_as_button = Button(game.main_screen, "Save As", game.main_screen_x_center + 125, (save_options_popup.locator_rect[1] + save_options_popup.locator_rect[3] - 35), 150, 70, "grey", "white", "black")
 
-saving_popup = popup(main_screen, main_screen_x_center, main_screen_y_center, 200, 100, "Saving", "black", "green", "white")
+saving_popup = popup(game.main_screen, game.main_screen_x_center, game.main_screen_y_center, 200, 100, "Saving", "black", "green", "white")
 saving_popup.execute = False
 
 def save_current_course():
     # Open the CSV file in write mode
-    with open(current_file, mode='w', newline='') as file:
+    with open(game.current_file, mode='w', newline='') as file:
         writer = csv.writer(file)
         
         # Write headers to the CSV file
         writer.writerow(['Key', 'ID', 'Type', 'Layer', 'X', 'Y'])
 
         # Loop through each item in the obstacle_dict
-        for key, obj in shape_blockchain_ids.items():
+        for key, obj in game.shape_blockchain_ids.items():
 
             if isinstance(obj, arc_object):
                 # Collect common attributes
@@ -934,11 +907,6 @@ def save_current_course():
 
 
 def process_file_load(file):
-     global mouse_layer
-     global shape_id_blockchain
-     global selected_blockchain_id
-
-
      with open(file, mode='r', newline='') as file:
         reader = csv.reader(file)
         next(reader)  # Skip the header row
@@ -948,39 +916,31 @@ def process_file_load(file):
 
         for row in reader:
             if row[2] == "arc":
-                new_arc = arc_object(int(row[1]), float(row[6]), float(row[7]), float(row[8]), float(row[9]), row[12], int(row[3]), main_screen)
+                new_arc = arc_object(int(row[1]), float(row[6]), float(row[7]), float(row[8]), float(row[9]), row[12], int(row[3]), game.main_screen)
                 new_arc.x3 = float(row[10])
                 new_arc.y3 = float(row[11])
-                shape_blockchain_ids[int(row[0])] = new_arc
+                game.shape_blockchain_ids[int(row[0])] = new_arc
 
-                selected_blockchain_id = int(row[0])
-                mouse_layer = shape_id_blockchain + 1
-                shape_id_blockchain += 1
+                game.selected_blockchain_id = int(row[0])
+                game.mouse_layer = game.shape_id_blockchain + 1
+                game.shape_id_blockchain += 1
 
 
             elif row[2] == "rectangle":
-                new_rectangle = rectangle_object(int(row[1]), float(row[4]), float(row[5]), float(row[6]), float(row[7]), row[8], int(row[3]), main_screen)
-                shape_blockchain_ids[int(row[0])] = new_rectangle
+                new_rectangle = rectangle_object(int(row[1]), float(row[4]), float(row[5]), float(row[6]), float(row[7]), row[8], int(row[3]), game.main_screen)
+                game.shape_blockchain_ids[int(row[0])] = new_rectangle
 
-                selected_blockchain_id = int(row[0])
-                mouse_layer = shape_id_blockchain + 1
-                shape_id_blockchain += 1
+                game.selected_blockchain_id = int(row[0])
+                game.mouse_layer = game.shape_id_blockchain + 1
+                game.shape_id_blockchain += 1
 
             elif row[2] == "ellipse":
-                new_ellipse = ellipse_object(int(row[1]), float(row[4]), float(row[5]), float(row[6]), float(row[7]), row[8], int(row[3]), main_screen)
-                shape_blockchain_ids[int(row[0])] = new_ellipse
+                new_ellipse = ellipse_object(int(row[1]), float(row[4]), float(row[5]), float(row[6]), float(row[7]), row[8], int(row[3]), game.main_screen)
+                game.shape_blockchain_ids[int(row[0])] = new_ellipse
 
-                selected_blockchain_id = int(row[0])
-                mouse_layer = shape_id_blockchain + 1
-                shape_id_blockchain += 1
-
-
-current_file = None
-
-
-
-
-
+                game.selected_blockchain_id = int(row[0])
+                game.mouse_layer = game.shape_id_blockchain + 1
+                game.shape_id_blockchain += 1
 
 class Propellor:
     def __init__(self, path, center_coordinates, scale_factor, rotation_speed, screen):
@@ -1008,17 +968,24 @@ class Propellor:
         self.screen.blit(rotated_image, rect)
 
         # Update the angle
-        self.angle = (self.angle + self.rotation_speed * dt) % 360
+        self.angle = (self.angle + self.rotation_speed * game.dt) % 360
 
 class Drone:
-    def __init__(self, obstacle_map, center_coordinates, orientation):
+    def __init__(self, obstacle_map, center_coordinates, orientation = 0):
+        pygame.init()
+        game = Game()
         self.sprite_path = "Mechatronics II/Drone Course Simulator/Assets/Drone_Disconnected_No_Prop.png"
-        self.center_coordinates = (center_coordinates[0] + newX, center_coordinates[1])  # Now the center of the drone
+        self.center_coordinates = (center_coordinates[0] + game.newX, center_coordinates[1])  # Now the center of the drone
         self.scale_factor = 2.5
-        self.screen = main_screen
+        self.screen = game.main_screen
         self.obstacle_map = obstacle_map
-        self.orientation = orientation
         self.speed_multipler = 1
+        
+        # Add the rotation angle
+        self.rotation_angle = orientation  # Initialize the drone facing 0 degrees (up)
+
+        # New: Queue for storing commands
+        self.command_queue = []
 
         # Load and scale image
         self.icon = pygame.image.load(self.sprite_path).convert_alpha()
@@ -1026,302 +993,423 @@ class Drone:
         self.final_size = (int(self.icon_width * self.scale_factor), int(self.icon_height * self.scale_factor))
         self.icon_final = pygame.transform.scale(self.icon, self.final_size)
 
+    def _rotate_ccw(self, angle):
+        duration = 1000
+        """
+        Rotate the drone counterclockwise by the specified angle over a given duration (in milliseconds).
+        :param angle: The total angle to rotate by.
+        :param duration: The time duration for the full rotation in milliseconds.
+        """
+        start_time = pygame.time.get_ticks()
+        end_time = start_time + duration
+        initial_angle = self.rotation_angle
+
+        self.rotation_angle = (initial_angle - angle) % 360
+
+    def _rotate_cw(self, angle):
+        duration = 1000
+        """
+        Rotate the drone clockwise by the specified angle over a given duration (in milliseconds).
+        :param angle: The total angle to rotate by.
+        :param duration: The time duration for the full rotation in milliseconds.
+        """
+        start_time = pygame.time.get_ticks()
+        end_time = start_time + duration
+        initial_angle = self.rotation_angle
+
+
+        # Gradually interpolate between the initial and target angle
+        self.rotation_angle = (initial_angle + angle) % 360
+
+    def _forward(self, distance):
+        """
+        Move the drone forward by the specified distance in the direction it is facing.
+        :param distance: The distance to move.
+        """
+        # Convert the rotation angle to radians
+        angle_radians = math.radians(self.rotation_angle)  # Invert the angle to match Pygame's coordinates
+
+        # Calculate the movement vector
+        dx = distance * math.cos(angle_radians)
+        dy = distance * math.sin(angle_radians)
+
+        # Update the drone's position
+        new_x = self.center_coordinates[0] + dx
+        new_y = self.center_coordinates[1] + dy  # Add dy since Pygame's y-axis increases downward
+
+        # Set the new coordinates
+        self.center_coordinates = (new_x, new_y)
+    
+    def _land():
+        print("Landed")
+
+    """Queueing Operations"""
+    def forward(self, distance):
+        """Queue a forward movement command."""
+        self.command_queue.append(("forward", distance))
+
+    def rotate_cw(self, angle):
+        """Queue a clockwise rotation command."""
+        self.command_queue.append(("rotate_cw", angle))
+
+    def rotate_ccw(self, angle):
+        """Queue a counterclockwise rotation command."""
+        self.command_queue.append(("rotate_ccw", angle))
+
+    def land(self):
+        """Queue a land command."""
+        self.command_queue.append(("land",))
+
+
+    # New: Execute the next command in the queue
+    def execute_next_command(self):
+        """Execute the next queued command, if any."""
+        if self.command_queue:
+            command, *args = self.command_queue.pop(0)
+            
+            if command == "forward":
+                self._forward(args[0])
+            elif command == "rotate_cw":
+                self._rotate_cw(args[0])
+            elif command == "rotate_ccw":
+                self._rotate_ccw(args[0])
+            elif command == "land":
+                self._land()
+    
+    # Start Sim
+    def launch(self):
+        fly_drone(self, self.obstacle_map)
+
     def draw(self):
         """ Draw the drone centered on its coordinates """
-        # Get the rect and position it based on the center
-        rect = self.icon_final.get_rect(center=self.center_coordinates)
-        self.screen.blit(self.icon_final, rect)
+        # Rotate the image based on the current angle
+        rotated_image = pygame.transform.rotate(self.icon_final, -self.rotation_angle)  
+        rect = rotated_image.get_rect(center=self.center_coordinates)
+        self.screen.blit(rotated_image, rect)
 
-speed = 1600
-prop1 = Propellor("Mechatronics II/Drone Course Simulator/Assets/Prop.png", (25 + newX, 100), 2.5, speed, main_screen)
-prop2 = Propellor("Mechatronics II/Drone Course Simulator/Assets/Prop.png", (92.5 + newX, 100), 2.5, speed, main_screen)
-prop3 = Propellor("Mechatronics II/Drone Course Simulator/Assets/Prop.png", (25 + newX, 175), 2.5, speed, main_screen)
-prop4 = Propellor("Mechatronics II/Drone Course Simulator/Assets/Prop.png", (92.5 + newX, 175), 2.5, speed, main_screen)
+speed = 160000
+prop1 = Propellor("Mechatronics II/Drone Course Simulator/Assets/Prop.png", (25 + game.newX, 100), 2.5, speed, game.main_screen)
+prop2 = Propellor("Mechatronics II/Drone Course Simulator/Assets/Prop.png", (92.5 + game.newX, 100), 2.5, speed, game.main_screen)
+prop3 = Propellor("Mechatronics II/Drone Course Simulator/Assets/Prop.png", (25 + game.newX, 175), 2.5, speed, game.main_screen)
+prop4 = Propellor("Mechatronics II/Drone Course Simulator/Assets/Prop.png", (92.5 + game.newX, 175), 2.5, speed, game.main_screen)
 drone_propellors = [prop1, prop2, prop3, prop4]
-tello = Drone(None, (60, 135), None)
-
-"""MAIN GAMELOOP"""
-while running:  
-    critical_events()
-    main_screen_background()
-    main_screen_menu()
-    get_user_inputs()
-    draw_obstacles()
-    tello.draw()
-    for prop in drone_propellors:
-        prop.draw()
-    
-
-    if spup.execute:
-        spup.draw()
-        sbutton.draw()
-        if sbutton.is_clicked():
-            spup.execute = False
-            spup2.execute = True
-    
-    elif spup2.execute:
-        spup2.draw()
-        sbutton2.draw()
-        sbutton3.draw()
-        if sbutton2.is_clicked():
-            spup2.execute = False
-            new_course_popup.execute = True
-
-        elif sbutton3.is_clicked():
-            spup2.execute = False
-            edit_course_popup.execute = True
-    
-    elif new_course_popup.execute:
-        new_course_popup.draw()
-        new_course_finish_button.draw()
-        text_box.draw(main_screen)
-
-        if new_course_finish_button.is_clicked():
-            text_box.submit = True
-
-        elif text_box.submit:
-            new_course_name = text_box.final_text
-            new_course_popup.execute = False
-
-            # Define the path manually
-            filepath = f"Mechatronics II/Drone Course Simulator/Saved Maps/{new_course_name}.csv"
-
-            # Create an empty CSV file
-            with open(filepath, "w") as file:
-                pass  # Just creates the file without writing anything`
-
-            current_file = filepath
-    
-    elif edit_course_popup.execute:
-        edit_course_popup.draw()
-        edit_course_finish_button.draw()
-        text_box_2.draw(main_screen)
-
-        if edit_course_finish_button.is_clicked():
-            text_box_2.submit = True
-
-        elif text_box_2.submit:
-            edit_course_name = f"{text_box_2.final_text}.csv"
-            if edit_course_name not in all_files:
-                text_box_2.submit = False
-                text_box_2.text = ""
-            else:
-                current_file = f"Mechatronics II/Drone Course Simulator/Saved Maps/{edit_course_name}"
-
-                process_file_load(current_file)
-
-                edit_course_popup.execute = False
 
 
-    elif save_options_popup.execute:
-        save_options_popup.draw()
-        save_button.draw()
-        save_as_button.draw()
+#from Drone_Course_Simulator import Drone
+#tello = Drone(None, (60, 135), None)
+#tello.forward(100)
+
+def map_maker():
+    game.type = "map_builder"
+    counter = 0
+    stopper = False
+
+    """MAIN GAMELOOP"""
+    while game.running:  
+        critical_events()
+        main_screen_background()
+        main_screen_menu()
+        get_user_inputs()
+        draw_obstacles()
         
-        if save_button.is_clicked():
-            save_current_course()
-            
-    else:  
-        for icon in menu_icons:
-            if hitbox(icon.hitbox, mouse_hitbox):
-                highlight_box = (icon.hitbox[0] - 2, icon.hitbox[1] - 2, icon.hitbox[2] + 4, icon.hitbox[3] + 4)
-                pygame.draw.rect(main_screen, "white", highlight_box, 2)
-                if not(moving or expanding):
-                    if can_select and left_click:
-                        icon.action()
-                        can_select = False
+        if spup.execute:
+            spup.draw()
+            sbutton.draw()
+            if sbutton.is_clicked():
+                spup.execute = False
+                spup2.execute = True
+        
+        elif spup2.execute:
+            spup2.draw()
+            sbutton2.draw()
+            sbutton3.draw()
+            if sbutton2.is_clicked():
+                spup2.execute = False
+                new_course_popup.execute = True
 
-        '''Calculating Shapes Physics'''
-        obstacles = sorted(shape_blockchain_ids.values(), key = lambda x: x.layer, reverse = True)
-        for shape in obstacles:
-            """Calculate New Mouse layer"""
-            if not (moving or altering_point_1 or altering_point_2 or altering_point_3 or expanding):
-                if shape.type == 'arc' and (hitbox(shape.expansion_hitbox_1, mouse_hitbox) or hitbox(shape.expansion_hitbox_2, mouse_hitbox) or hitellipse(shape.expansion_hitbox_3, mouse_hitbox)):
-                    if can_select and left_click:
-                        mouse_layer = shape.layer
-                        selected_blockchain_id = shape.blockchain_id
-                        can_select = False
+            elif sbutton3.is_clicked():
+                spup2.execute = False
+                edit_course_popup.execute = True
+        
+        elif new_course_popup.execute:
+            new_course_popup.draw()
+            new_course_finish_button.draw()
+            text_box.draw(game.main_screen)
 
-                if shape.type == 'ellipse' and (hitellipse(shape.hitbox, mouse_hitbox) or hitbox(shape.expansion_hitbox, mouse_hitbox)):
-                    if can_select and left_click:
-                        mouse_layer = shape.layer
-                        selected_blockchain_id = shape.blockchain_id
-                        can_select = False
+            if new_course_finish_button.is_clicked():
+                text_box.submit = True
 
-                if shape.type == 'rectangle' and (hitbox(shape.hitbox, mouse_hitbox) or hitbox(shape.expansion_hitbox, mouse_hitbox)):
-                    if can_select and left_click:
-                        mouse_layer = shape.layer
-                        selected_blockchain_id = shape.blockchain_id
-                        can_select = False
+            elif text_box.submit:
+                new_course_name = text_box.final_text
+                new_course_popup.execute = False
 
-            """Change Shape Sizes"""
-            #Hehe later (needs to be run before center movements or the line object blows up due to necessary selection tolerance)
-            if shape.type == 'arc':
-                if (hitbox(shape.expansion_hitbox_1, mouse_hitbox) or altering_point_1) and not (moving or altering_point_2 or altering_point_3) and mouse_layer == shape.layer:
-                    if left_click:
-                        altering_point_1 = True
-                        expanding = True
-                        shape.x1 += change_x
-                        shape.y1 += change_y
-                        if not mouse_lock[0]:
-                            mouse_lock = (True, shape, shape.x1, shape.y1, x_mouse, y_mouse)
-                    else:
-                        altering_point_1 = False
-                        expanding = False
-                        mouse_lock = (False, None, None, None, 0, 0)
+                # Define the path manually
+                filepath = f"Mechatronics II/Drone Course Simulator/Saved Maps/{new_course_name}.csv"
 
-                if (hitbox(shape.expansion_hitbox_2, mouse_hitbox) or altering_point_2) and not (moving or altering_point_1 or altering_point_3) and mouse_layer == shape.layer:
-                    if left_click:
-                        altering_point_2 = True
-                        expanding = True
-                        shape.x2 += change_x
-                        shape.y2 += change_y
+                # Create an empty CSV file
+                with open(filepath, "w") as file:
+                    pass  # Just creates the file without writing anything`
 
-                        if not mouse_lock[0]:
-                            mouse_lock = (True, shape, shape.x2, shape.y2, x_mouse, y_mouse)
-                    else:
-                        mouse_lock = (False, None, None, None, 0, 0)
-                        altering_point_2 = False
-                        expanding = False
+                game.current_file = filepath
+        
+        elif edit_course_popup.execute:
+            edit_course_popup.draw()
+            edit_course_finish_button.draw()
+            text_box_2.draw(game.main_screen)
 
-                if (hitellipse(shape.expansion_hitbox_3, mouse_hitbox) or altering_point_3) and not (moving or altering_point_1 or altering_point_2) and mouse_layer == shape.layer:
-                            if left_click:
-                                shape.can_lock = False
-                                shape_lock = False
-                                altering_point_3 = True
-                                expanding = True
-                                shape.x3 += change_x
-                                shape.y3 += change_y
-                            
-                            else:
-                                shape.can_lock = True
-                                mouse_lock = (False, None, None, None, 0, 0)
-                                altering_point_3 = False
-                                expanding = False
+            if edit_course_finish_button.is_clicked():
+                text_box_2.submit = True
 
-                if moving:
-                    left_x = min(shape.expansion_hitbox_1[0], shape.expansion_hitbox_2[0])
-                    top_y = min(shape.expansion_hitbox_1[1], shape.expansion_hitbox_2[1])
-                    width = abs(shape.expansion_hitbox_1[0] - shape.expansion_hitbox_2[0]) + 20
-                    height = abs(shape.expansion_hitbox_1[1] - shape.expansion_hitbox_2[1]) + 20
-                    hit = hitborder((left_x, top_y, width, height))
-                    if hit[2]:
-                        shape.x += hit[0]
-                        shape.y += hit[1]
+            elif text_box_2.submit:
+                edit_course_name = f"{text_box_2.final_text}.csv"
+                if edit_course_name not in all_files:
+                    text_box_2.submit = False
+                    text_box_2.text = ""
                 else:
-                    hit_1 = hitborder(shape.expansion_hitbox_1)
-                    hit_2 = hitborder(shape.expansion_hitbox_2)
-                    hit_3 = hitborder(shape.expansion_hitbox_3)
-                    if hit_1[2]:
-                        shape.x1 += hit_1[0]
-                        shape.y1 += hit_1[1]
-                    if hit_2[2]:
-                        shape.x2 += hit_2[0]
-                        shape.y2 += hit_2[1]
-                    if hit_3[2]:
-                        shape.x3 += hit_3[0]
-                        shape.y3 += hit_3[1]
-                    
-                    if snap_mode:
-                        shape.x1, shape.y1 = snap_mode_correct(shape.x1, shape.y1)
-                        shape.x2, shape.y2 = snap_mode_correct(shape.x2, shape.y2)
+                    game.current_file = f"Mechatronics II/Drone Course Simulator/Saved Maps/{edit_course_name}"
 
-            else:
-                if(hitbox(shape.expansion_hitbox, mouse_hitbox) or expanding) and not (moving or altering_point_1 or altering_point_2) and mouse_layer == shape.layer:
-                    if left_click:
-                        expanding = True
-                        if shape.width > 20:
-                            shape.width += change_x
-                            shape.x += change_x / 2
-                        elif shape.width == 20 and change_x > 0:
-                            shape.x += change_x / 2
-                            shape.width += change_x
-                        else:
-                            shape.width = 20
-                        
-                        if shape.height > 20:
-                            shape.height -= change_y
-                            shape.y += change_y / 2
-                        elif shape.height == 20 and change_y < 0:
-                            shape.y += change_y / 2
-                            shape.height -= change_y
-                        else:
-                            shape.height = 20
+                    process_file_load(game.current_file)
 
-                        if not mouse_lock[0]:
-                            mouse_lock = (True, shape, shape.expansion_hitbox[0], shape.expansion_hitbox[1], x_mouse, y_mouse)
-                    else:
-                        shape_lock = (False, None, None)
-                        mouse_lock = (False, None, None, None, 0, 0)
-                        expanding = False
+                    edit_course_popup.execute = False
+
+
+        elif save_options_popup.execute:
+            save_options_popup.draw()
+            save_button.draw()
+            save_as_button.draw()
+            
+            if save_button.is_clicked():
+                save_current_course()
                 
-                if moving:
-                    left_x = shape.hitbox[0]
-                    top_y = shape.hitbox[1] - 20
-                    width = shape.hitbox[2] + 20
-                    height = shape.hitbox[3] + 20
-                    hit = hitborder((left_x, top_y, width, height))
-                    if hit[2]:
-                        shape.x += hit[0]
-                        shape.y += hit[1]
+        else:  
+            for icon in menu_icons:
+                if hitbox(icon.hitbox, game.mouse_hitbox):
+                    highlight_box = (icon.hitbox[0] - 2, icon.hitbox[1] - 2, icon.hitbox[2] + 4, icon.hitbox[3] + 4)
+                    pygame.draw.rect(game.main_screen, "white", highlight_box, 2)
+                    if not(game.moving or game.expanding):
+                        if game.can_select and game.left_click:
+                            icon.action()
+                            game.can_select = False
+
+            '''Calculating Shapes Physics'''
+            obstacles = sorted(game.shape_blockchain_ids.values(), key = lambda x: x.layer, reverse = True)
+            for shape in obstacles:
+                """Calculate New Mouse layer"""
+                if not (game.moving or game.altering_point_1 or game.altering_point_2 or game.altering_point_3 or game.expanding):
+                    if shape.type == 'arc' and (hitbox(shape.expansion_hitbox_1, game.mouse_hitbox) or hitbox(shape.expansion_hitbox_2, game.mouse_hitbox) or hitellipse(shape.expansion_hitbox_3, game.mouse_hitbox)):
+                        if game.can_select and game.left_click:
+                            game.mouse_layer = shape.layer
+                            game.selected_blockchain_id = shape.blockchain_id
+                            game.can_select = False
+
+                    if shape.type == 'ellipse' and (hitellipse(shape.hitbox, game.mouse_hitbox) or hitbox(shape.expansion_hitbox, game.mouse_hitbox)):
+                        if game.can_select and game.left_click:
+                            game.mouse_layer = shape.layer
+                            game.selected_blockchain_id = shape.blockchain_id
+                            game.can_select = False
+
+                    if shape.type == 'rectangle' and (hitbox(shape.hitbox, game.mouse_hitbox) or hitbox(shape.expansion_hitbox, game.mouse_hitbox)):
+                        if game.can_select and game.left_click:
+                            game.mouse_layer = shape.layer
+                            game.selected_blockchain_id = shape.blockchain_id
+                            game.can_select = False
+
+                """Change Shape Sizes"""
+                #Hehe later (needs to be run before center movements or the line object blows up due to necessary selection tolerance)
+                if shape.type == 'arc':
+                    if (hitbox(shape.expansion_hitbox_1, game.mouse_hitbox) or game.altering_point_1) and not (game.moving or game.altering_point_2 or game.altering_point_3) and game.mouse_layer == shape.layer:
+                        if game.left_click:
+                            game.altering_point_1 = True
+                            game.expanding = True
+                            shape.x1 += game.change_x
+                            shape.y1 += game.change_y
+                            if not game.mouse_lock[0]:
+                                game.mouse_lock = (True, shape, shape.x1, shape.y1, game.x_mouse, game.y_mouse)
+                        else:
+                            game.altering_point_1 = False
+                            game.expanding = False
+                            game.mouse_lock = (False, None, None, None, 0, 0)
+
+                    if (hitbox(shape.expansion_hitbox_2, game.mouse_hitbox) or game.altering_point_2) and not (game.moving or game.altering_point_1 or game.altering_point_3) and game.mouse_layer == shape.layer:
+                        if game.left_click:
+                            game.altering_point_2 = True
+                            game.expanding = True
+                            shape.x2 += game.change_x
+                            shape.y2 += game.change_y
+
+                            if not mouse_lock[0]:
+                                mouse_lock = (True, shape, shape.x2, shape.y2, game.x_mouse, game.y_mouse)
+                        else:
+                            mouse_lock = (False, None, None, None, 0, 0)
+                            game.altering_point_2 = False
+                            game.expanding = False
+
+                    if (hitellipse(shape.expansion_hitbox_3, game.mouse_hitbox) or game.altering_point_3) and not (game.moving or game.altering_point_1 or game.altering_point_2) and game.mouse_layer == shape.layer:
+                                if game.left_click:
+                                    shape.can_lock = False
+                                    game.shape_lock = False
+                                    game.altering_point_3 = True
+                                    game.expanding = True
+                                    shape.x3 += game.change_x
+                                    shape.y3 += game.change_y
+                                
+                                else:
+                                    shape.can_lock = True
+                                    mouse_lock = (False, None, None, None, 0, 0)
+                                    game.altering_point_3 = False
+                                    game.expanding = False
+
+                    if game.moving:
+                        left_x = min(shape.expansion_hitbox_1[0], shape.expansion_hitbox_2[0])
+                        top_y = min(shape.expansion_hitbox_1[1], shape.expansion_hitbox_2[1])
+                        width = abs(shape.expansion_hitbox_1[0] - shape.expansion_hitbox_2[0]) + 20
+                        height = abs(shape.expansion_hitbox_1[1] - shape.expansion_hitbox_2[1]) + 20
+                        hit = hitborder((left_x, top_y, width, height))
+                        if hit[2]:
+                            shape.x += hit[0]
+                            shape.y += hit[1]
+                    else:
+                        hit_1 = hitborder(shape.expansion_hitbox_1)
+                        hit_2 = hitborder(shape.expansion_hitbox_2)
+                        hit_3 = hitborder(shape.expansion_hitbox_3)
+                        if hit_1[2]:
+                            shape.x1 += hit_1[0]
+                            shape.y1 += hit_1[1]
+                        if hit_2[2]:
+                            shape.x2 += hit_2[0]
+                            shape.y2 += hit_2[1]
+                        if hit_3[2]:
+                            shape.x3 += hit_3[0]
+                            shape.y3 += hit_3[1]
+                        
+                        if game.snap_mode:
+                            shape.x1, shape.y1 = snap_mode_correct(shape.x1, shape.y1)
+                            shape.x2, shape.y2 = snap_mode_correct(shape.x2, shape.y2)
+
                 else:
-                    hit = hitborder(shape.expansion_hitbox)
-                    if hit[2]:
-                        shape.x += hit[0] / 2
-                        shape.width += hit[0]
-                        shape.y += hit[1] / 2
-                        shape.height -= hit[1]
+                    if(hitbox(shape.expansion_hitbox, game.mouse_hitbox) or game.expanding) and not (game.moving or game.altering_point_1 or game.altering_point_2) and game.mouse_layer == shape.layer:
+                        if game.left_click:
+                            game.expanding = True
+                            if shape.width > 20:
+                                shape.width += game.change_x
+                                shape.x += game.change_x / 2
+                            elif shape.width == 20 and game.change_x > 0:
+                                shape.x += game.change_x / 2
+                                shape.width += game.change_x
+                            else:
+                                shape.width = 20
+                            
+                            if shape.height > 20:
+                                shape.height -= game.change_y
+                                shape.y += game.change_y / 2
+                            elif shape.height == 20 and game.change_y < 0:
+                                shape.y += game.change_y / 2
+                                shape.height -= game.change_y
+                            else:
+                                shape.height = 20
+
+                            if not game.mouse_lock[0]:
+                                game.mouse_lock = (True, shape, shape.expansion_hitbox[0], shape.expansion_hitbox[1], game.x_mouse, game.y_mouse)
+                        else:
+                            game.shape_lock = (False, None, None)
+                            game.mouse_lock = (False, None, None, None, 0, 0)
+                            game.expanding = False
                     
-                    if snap_mode:
-                        result = snap_mode_correct(shape.expansion_hitbox[0], shape.expansion_hitbox[1])
-                        shape.width += result[0] - shape.expansion_hitbox[0]
-                        shape.x += (result[0] - shape.expansion_hitbox[0]) / 2
-                        shape.height += result[1] - shape.expansion_hitbox[1]
-                        shape.y += (result[1] - shape.expansion_hitbox[1]) / 2
-
-            """Move Shape Centers"""
-            if shape.type == 'arc' and shape.locked:
-                if (hitline(shape.hitbox, mouse_hitbox) or moving) and not (altering_point_1 or altering_point_2 or expanding) and mouse_layer == shape.layer:
-                    if left_click:
-                        moving = True
-                        shape.x1 += change_x
-                        shape.x2 += change_x
-                        shape.y1 += change_y
-                        shape.y2 += change_y
-                        if not mouse_lock[0]:
-                            mouse_lock = (True, shape, shape.x, shape.y, x_mouse, y_mouse)
+                    if game.moving:
+                        left_x = shape.hitbox[0]
+                        top_y = shape.hitbox[1] - 20
+                        width = shape.hitbox[2] + 20
+                        height = shape.hitbox[3] + 20
+                        hit = hitborder((left_x, top_y, width, height))
+                        if hit[2]:
+                            shape.x += hit[0]
+                            shape.y += hit[1]
                     else:
-                        mouse_lock = (False, None, None, None, 0, 0)
-                        moving = False
-            
-            elif shape.type == "rectangle":
-                if (hitbox(shape.hitbox, mouse_hitbox) or moving) and not (altering_point_1 or altering_point_2 or expanding) and mouse_layer == shape.layer:
-                    if left_click:
-                        moving = True
-                        shape.x += change_x
-                        shape.y += change_y
-                        if not mouse_lock[0]:
-                            mouse_lock = (True, shape, shape.x, shape.y, x_mouse, y_mouse)
-                    else:
-                        mouse_lock = (False, None, None, None, 0, 0)
-                        moving = False
+                        hit = hitborder(shape.expansion_hitbox)
+                        if hit[2]:
+                            shape.x += hit[0] / 2
+                            shape.width += hit[0]
+                            shape.y += hit[1] / 2
+                            shape.height -= hit[1]
+                        
+                        if game.snap_mode:
+                            result = snap_mode_correct(shape.expansion_hitbox[0], shape.expansion_hitbox[1])
+                            shape.width += result[0] - shape.expansion_hitbox[0]
+                            shape.x += (result[0] - shape.expansion_hitbox[0]) / 2
+                            shape.height += result[1] - shape.expansion_hitbox[1]
+                            shape.y += (result[1] - shape.expansion_hitbox[1]) / 2
 
-            elif shape.type == "ellipse":
-                if(hitellipse(shape.hitbox, mouse_hitbox) or moving) and not (altering_point_1 or altering_point_2 or expanding) and mouse_layer == shape.layer:
-                    if left_click:
-                        moving = True
-                        shape.x += change_x
-                        shape.y += change_y
-                        if not mouse_lock[0]:
-                            mouse_lock = (True, shape, shape.x, shape.y, x_mouse, y_mouse)
-                    else:
-                        mouse_lock = (False, None, None, None, 0, 0)
-                        moving = False
+                """Move Shape Centers"""
+                if shape.type == 'arc' and shape.locked:
+                    if (hitline(shape.hitbox, game.mouse_hitbox) or game.moving) and not (game.altering_point_1 or game.altering_point_2 or game.expanding) and game.mouse_layer == shape.layer:
+                        if game.left_click:
+                            game.moving = True
+                            shape.x1 += game.change_x
+                            shape.x2 += game.change_x
+                            shape.y1 += game.change_y
+                            shape.y2 += game.change_y
+                            if not game.mouse_lock[0]:
+                                game.mouse_lock = (True, shape, shape.x, shape.y, game.x_mouse, game.y_mouse)
+                        else:
+                            game.mouse_lock = (False, None, None, None, 0, 0)
+                            game.moving = False
+                
+                elif shape.type == "rectangle":
+                    if (hitbox(shape.hitbox, game.mouse_hitbox) or game.moving) and not (game.altering_point_1 or game.altering_point_2 or game.expanding) and game.mouse_layer == shape.layer:
+                        if game.left_click:
+                            moving = True
+                            shape.x += game.change_x
+                            shape.y += game.change_y
+                            if not game.mouse_lock[0]:
+                                game.mouse_lock = (True, shape, shape.x, shape.y, game.x_mouse, game.y_mouse)
+                        else:
+                            game.mouse_lock = (False, None, None, None, 0, 0)
+                            game.moving = False
 
-    gametime_runner()
-    
+                elif shape.type == "ellipse":
+                    if(hitellipse(shape.hitbox, game.mouse_hitbox) or game.moving) and not (game.altering_point_1 or game.altering_point_2 or game.expanding) and game.mouse_layer == shape.layer:
+                        if game.left_click:
+                            game.moving = True
+                            shape.x += game.change_x
+                            shape.y += game.change_y
+                            if not game.mouse_lock[0]:
+                                game.mouse_lock = (True, shape, shape.x, shape.y, game.x_mouse, game.y_mouse)
+                        else:
+                            game.mouse_lock = (False, None, None, None, 0, 0)
+                            game.moving = False
+        print(game.running)
+        counter += game.dt
+        gametime_runner()
+    """FPS Check and Game Exit"""
+    print("Sim Exit")
+    print(f'Average FPS: {round(game.average_fps)}')
+    pygame.quit()
 
-"""FPS Check and Game Exit"""
-print("Sim Exit")
-print(f'Average FPS: {round(average_fps)}')
-pygame.quit()
+def fly_drone(drone, map):
+    game.type = "drone_flyer"
+    fly_course_name = f"{map}.csv"
+    game.current_file = f"Mechatronics II/Drone Course Simulator/Saved Maps/{fly_course_name}"
+    process_file_load(game.current_file)
+
+    while game.running:
+        critical_events()
+        main_screen_background()
+        get_user_inputs()
+        draw_obstacles()
+
+        drone.draw()
+
+        gametime_runner()
+
+    """FPS Check and Game Exit"""
+    print("Sim Exit")
+    print(f'Average FPS: {round(game.average_fps)}')
+    pygame.quit()
+
+if __name__ == "__main__":
+    # When running the script directly → launch Map Maker
+    map_maker()
+else:
+    # When importing into another script → prepare for the Drone Flyer
+    # fly_drone()
+    pass
