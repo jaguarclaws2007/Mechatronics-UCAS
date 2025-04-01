@@ -972,22 +972,30 @@ class Propellor:
         # Update the angle
         self.angle = (self.angle + self.rotation_speed * game.dt) % 360
 
+def simulator_exit():
+    """FPS Check and Game Exit"""
+    print("Sim Exit")
+    print(f'Average FPS: {round(game.average_fps)}')
+    pygame.quit()
+
 class Drone:
     def __init__(self, obstacle_map, center_coordinates, orientation = 0):
-        pygame.init()
-        game = Game()
         self.sprite_path = "Mechatronics II/Drone Course Simulator/Assets/Drone_Disconnected_No_Prop.png"
         self.center_coordinates = (center_coordinates[0] + game.newX, center_coordinates[1])  # Now the center of the drone
         self.scale_factor = 2.5
         self.screen = game.main_screen
         self.obstacle_map = obstacle_map
         self.speed_multipler = 1
+        self.animating_command = False
         
         # Add the rotation angle
         self.rotation_angle = orientation  # Initialize the drone facing 0 degrees (up)
 
         # New: Queue for storing commands
         self.command_queue = []
+        self.active_command = None
+        self.active_args = None
+        self.executing_commands = True
 
         # Load and scale image
         self.icon = pygame.image.load(self.sprite_path).convert_alpha()
@@ -996,44 +1004,72 @@ class Drone:
         self.icon_final = pygame.transform.scale(self.icon, self.final_size)
 
     def _rotate_ccw(self, angle):
-        duration = 1000
-        """
-        Rotate the drone counterclockwise by the specified angle over a given duration (in milliseconds).
-        :param angle: The total angle to rotate by.
-        :param duration: The time duration for the full rotation in milliseconds.
-        """
-        start_time = pygame.time.get_ticks()
-        end_time = start_time + duration
-        initial_angle = self.rotation_angle
+        speed = 72 #deg/s
+        dt = game.dt
 
-        self.rotation_angle = (initial_angle - angle) % 360
-
-    def _rotate_cw(self, angle):
-        duration = 1000
+        est_time = angle / speed
+        percent = dt / est_time
+        ang = percent * angle
+        self.active_args -= ang
+        if percent >= 0.95:
+            move_angle = self.active_args
+            self.animating_command = False
+        else:
+            move_angle = ang
         """
         Rotate the drone clockwise by the specified angle over a given duration (in milliseconds).
         :param angle: The total angle to rotate by.
         :param duration: The time duration for the full rotation in milliseconds.
         """
-        start_time = pygame.time.get_ticks()
-        end_time = start_time + duration
         initial_angle = self.rotation_angle
-
-
         # Gradually interpolate between the initial and target angle
-        self.rotation_angle = (initial_angle + angle) % 360
+        self.rotation_angle = (initial_angle - move_angle) % 360
+
+    def _rotate_cw(self, angle):
+        speed = 72 #deg/s
+        dt = game.dt
+
+        est_time = angle / speed
+        percent = dt / est_time
+        ang = percent * angle
+        self.active_args -= ang
+        if percent >= 0.95:
+            move_angle = self.active_args
+            self.animating_command = False
+        else:
+            move_angle = ang
+        """
+        Rotate the drone clockwise by the specified angle over a given duration (in milliseconds).
+        :param angle: The total angle to rotate by.
+        :param duration: The time duration for the full rotation in milliseconds.
+        """
+        initial_angle = self.rotation_angle
+        # Gradually interpolate between the initial and target angle
+        self.rotation_angle = (initial_angle + move_angle) % 360
 
     def _forward(self, distance):
         """
         Move the drone forward by the specified distance in the direction it is facing.
         :param distance: The distance to move.
         """
+        speed = 150 #cm/s
+        dt = game.dt
+
+        est_time = distance / speed
+        percent = dt / est_time
+        dist = percent * distance
+        self.active_args -= dist
+        if percent >= 0.95:
+            move_dist = self.active_args
+            self.animating_command = False
+        else:
+            move_dist = dist
         # Convert the rotation angle to radians
         angle_radians = math.radians(self.rotation_angle)  # Invert the angle to match Pygame's coordinates
 
         # Calculate the movement vector
-        dx = distance * math.cos(angle_radians)
-        dy = distance * math.sin(angle_radians)
+        dx = move_dist * math.cos(angle_radians)
+        dy = move_dist * math.sin(angle_radians)
 
         # Update the drone's position
         new_x = self.center_coordinates[0] + dx
@@ -1065,24 +1101,31 @@ class Drone:
 
     # New: Execute the next command in the queue
     def execute_next_command(self):
-        """Execute the next queued command, if any."""
-        if self.command_queue:
-            command, *args = self.command_queue.pop(0)
-            
-            if command == "forward":
-                self._forward(args[0])
-            elif command == "rotate_cw":
-                self._rotate_cw(args[0])
-            elif command == "rotate_ccw":
-                self._rotate_ccw(args[0])
-            elif command == "land":
-                self._land()
+        """Execute the next queued command, if any."""            
+        if self.animating_command:
+            if self.active_command == "forward":
+                self._forward(self.active_args)
+            elif self.active_command == "rotate_cw":
+                self._rotate_cw(self.active_args)
+            elif self.active_command == "rotate_ccw":
+                self._rotate_ccw(self.active_args)
+            elif self.active_command == "land":
+                pass
+        
+        else:
+            try:
+                self.active_command, self.active_args = self.command_queue.pop(0)
+                self.animating_command = True
+            except IndexError:
+                self.executing_commands = False
     
     # Start Sim
     def launch(self):
         fly_drone(self, self.obstacle_map)
 
     def draw(self):
+        if self.executing_commands:
+            self.execute_next_command()
         """ Draw the drone centered on its coordinates """
         # Rotate the image based on the current angle
         rotated_image = pygame.transform.rotate(self.icon_final, -self.rotation_angle)  
@@ -1379,13 +1422,9 @@ def map_maker():
                         else:
                             game.mouse_lock = (False, None, None, None, 0, 0)
                             game.moving = False
-        print(game.running)
         counter += game.dt
         gametime_runner()
-    """FPS Check and Game Exit"""
-    print("Sim Exit")
-    print(f'Average FPS: {round(game.average_fps)}')
-    pygame.quit()
+    simulator_exit()
 
 def fly_drone(drone, map):
     game.type = "drone_flyer"
@@ -1402,16 +1441,11 @@ def fly_drone(drone, map):
         drone.draw()
 
         gametime_runner()
-
-    """FPS Check and Game Exit"""
-    print("Sim Exit")
-    print(f'Average FPS: {round(game.average_fps)}')
-    pygame.quit()
+    simulator_exit()
 
 if __name__ == "__main__":
-    # When running the script directly → launch Map Maker
+    # When running the script directly -> launch Map Maker
     map_maker()
 else:
-    # When importing into another script → prepare for the Drone Flyer
-    # fly_drone()
+    # When importing into another script -> prepare for the Drone Flyer
     pass
