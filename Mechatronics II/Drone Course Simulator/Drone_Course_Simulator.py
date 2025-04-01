@@ -1,11 +1,11 @@
 '''Libraries'''
 import pygame
-import math
-import csv
-import time
-import os
+from math import pi, atan2, sqrt, cos, sin, radians
+from csv import reader, writer
+from os import listdir
 from random import randint
 pygame.init()
+
 class Game():
     def __init__(self):
         '''Start Variables'''
@@ -79,7 +79,7 @@ class Game():
 game = Game()
 
 '''Shape Classes'''
-class arc_object(object):
+class arc_object():
     def __init__(self, id, x1, y1, x2, y2, color, layer, surface):
         self.blockchain_id = id
         self.type = 'arc'
@@ -154,27 +154,27 @@ class arc_object(object):
             self.y_I = self.slope_1_I * self.x_I - self.int_1_I
 
         self.x_I = -self.x_I
-        self.radius = math.sqrt(((self.x1 - self.x_I) ** 2) + ((y1 + self.y_I) ** 2))
+        self.radius = sqrt(((self.x1 - self.x_I) ** 2) + ((y1 + self.y_I) ** 2))
 
         self.circumcircle_hitbox = (self.x_I - self.radius, (self.y_I - self.radius), self.radius * 2, self.radius * 2)
 
     def distance_to_line(self, x0, y0, x1, y1, x2, y2):
         numerator = abs((y2 - y1) * x0 - (x2 - x1) * y0 + x2 * y1 - y2 * x1)
-        denominator = math.sqrt((y2 - y1) ** 2 + (x2 - x1) ** 2)
+        denominator = sqrt((y2 - y1) ** 2 + (x2 - x1) ** 2)
         return numerator / denominator if denominator != 0 else float('inf')
 
 
     def is_point_on_arc(self, center_x, cy, start_angle, end_angle, px, py):
         # Calculate the angle of the point (px, py) relative to the center (cx, cy)
-        angle_point = math.atan2(py - cy, px - center_x)
+        angle_point = atan2(py - cy, px - center_x)
 
         # Normalize the angles to be between [0, 2π]
         if start_angle < 0:
-            start_angle += 2 * math.pi
+            start_angle += 2 * pi
         if end_angle < 0:
-            end_angle += 2 * math.pi
+            end_angle += 2 * pi
         if angle_point < 0:
-            angle_point += 2 * math.pi
+            angle_point += 2 * pi
 
         # Ensure the angles are in correct order (start_angle to end_angle) on the circle
         if start_angle > end_angle:
@@ -212,9 +212,9 @@ class arc_object(object):
                 self.circumcircle_calc()            
 
                 # Calculate angles for the points
-                theta1 = math.atan2(self.y2 - self.y_I, self.x2 - self.x_I)
-                theta2 = math.atan2(self.y1 - self.y_I, self.x1 - self.x_I)
-                theta3 = math.atan2(self.y3 - self.y_I, self.x3 - self.x_I)
+                theta1 = atan2(self.y2 - self.y_I, self.x2 - self.x_I)
+                theta2 = atan2(self.y1 - self.y_I, self.x1 - self.x_I)
+                theta3 = atan2(self.y3 - self.y_I, self.x3 - self.x_I)
 
                 # Invert the angles to match Pygame's y-axis
                 self.start_angle = -theta1
@@ -223,11 +223,11 @@ class arc_object(object):
 
                 # Normalize Angles
                 if self.start_angle < 0:
-                    self.start_angle += 2 * math.pi
+                    self.start_angle += 2 * pi
                 if self.end_angle < 0:
-                    self.end_angle += 2 * math.pi
+                    self.end_angle += 2 * pi
                 if self.selector_angle < 0:
-                    self.selector_angle += 2 * math.pi
+                    self.selector_angle += 2 * pi
                 if self.start_angle > self.end_angle:
                     self.start_angle, self.end_angle = self.end_angle, self.start_angle
 
@@ -250,7 +250,7 @@ class arc_object(object):
 
         
 
-class ellipse_object(object):
+class ellipse_object():
     def __init__(self, id, x, y, width, height, color, layer, surface):
         self.blockchain_id = id
         self.type = 'ellipse'
@@ -271,7 +271,7 @@ class ellipse_object(object):
         if game.type == "map_builder":
             pygame.draw.rect(self.surface, "yellow", self.expansion_hitbox, 2)
 
-class rectangle_object(object):
+class rectangle_object():
     def __init__(self, id, x, y, width, height, color, layer, surface):
         self.blockchain_id = id
         self.type = 'rectangle'
@@ -326,9 +326,9 @@ def hitarc(stationary_hitbox, mobile_hitbox):
     for corner in corners:
         corner_x, corner_y = corner
         # Find the angle of the corner relative to the center of the arc
-        angle = -math.atan2(corner_y - center_y, corner_x - center_x)
+        angle = -atan2(corner_y - center_y, corner_x - center_x)
         if angle < 0:
-            angle += 2 * math.pi  # Normalize angle
+            angle += 2 * pi  # Normalize angle
         
         # Check if the corner is within the angular bounds of the arc and within the radius
         distance_squared = (corner_x - center_x)**2 + (corner_y - center_y)**2
@@ -374,7 +374,7 @@ def hitborder(hitbox):
         hit = True
     changes = (x, y, hit)
     return(changes)
-class menu_icon(object):
+class menu_icon():
     def __init__(self, path, mount_coordinates, scale_factor, highlight_color, screen, job_function):
         self.path = path
         self.mount_coordinates = mount_coordinates
@@ -494,7 +494,7 @@ exit_popup = pygame.Surface((exit_popup_width, exit_popup_height))
 exit_popup.fill((200, 200, 200))
 exit_popup_x, exit_popup_y = (game.main_screen_size_x - exit_popup_width) / 2, (game.main_screen_size_y - exit_popup_height) / 2
 
-class Button(object):
+class Button():
     def __init__(self, screen, text, x_center, y_center, width, height, color, highlight_color, text_color):
         self.screen = screen
         self.text = text
@@ -560,7 +560,7 @@ def render_wrapped_text(text, font, color, text_width):
     return text_surface
 
 
-class popup(object):
+class popup():
     def __init__(self, screen, x_center, y_center, width, height, text, color, highlight_color, text_color):
         self.screen = screen
         self.x_center = x_center
@@ -584,7 +584,7 @@ class popup(object):
         self.projecting_screen.blit(self.rendered_text, (10, 10))
         self.screen.blit(self.projecting_screen, self.locator_rect)
 
-class ScrollMenu:
+class ScrollMenu():
     def __init__(self, x, y, width, height, font, item_list, scroll_speed=20):
         self.x = x
         self.y = y
@@ -594,7 +594,7 @@ class ScrollMenu:
         self.item_list = item_list
         self.scroll_speed = scroll_speed
         self.scroll_offset = 0
-        self.last_scroll_time = time.time()  # Track the last scroll time
+        #self.last_scroll_time = time.time()  # Track the last scroll time
 
     def handle_scroll_event(self, event):
         """Handle scroll events with delta time."""
@@ -629,7 +629,7 @@ class ScrollMenu:
 
     def scroll(self, direction):
         """Scroll the menu list with delta time."""
-        current_time = time.time()
+        #current_time = time.time()
         delta_time = game.dt  # Get time difference between scroll events
         
         if delta_time < 0.1:  # Prevent too rapid scrolling
@@ -640,9 +640,9 @@ class ScrollMenu:
         elif direction == "up" and self.scroll_offset - self.scroll_speed >= 0:
             self.scroll_offset -= self.scroll_speed
         
-        self.last_scroll_time = current_time  # Update the last scroll time
+        #self.last_scroll_time = current_time  # Update the last scroll time
 
-class TextBox:
+class TextBox():
     def __init__(self, x, y, width, height, font, color, bg_color, max_length=50):
         # Initialize the position, size, font, color, etc.
         self.rect = pygame.Rect(x, y, width, height)  # Rectangle for the text box
@@ -835,7 +835,7 @@ new_course_popup.execute = False
 
 edit_course_read = "Enter the name for the course you would like to edit"
 edit_course_popup = popup(game.main_screen, game.main_screen_x_center, game.main_screen_y_center, 400, 300, edit_course_read, "black", "green", "white")
-all_files = os.listdir("Mechatronics II/Drone Course Simulator/Saved Maps")
+all_files = listdir("Mechatronics II/Drone Course Simulator/Saved Maps")
 text_box_2 = TextBox(new_course_popup.locator_rect[0], new_course_popup.locator_rect[1] + 80, 400, 40, game.info_font, "black", "white")
 edit_course_finish_button = Button(game.main_screen, "Finish", game.main_screen_x_center, (new_course_popup.locator_rect[1] + new_course_popup.locator_rect[3] - 35), 150, 70, "grey", "white", "black")
 edit_course_popup.execute = False
@@ -852,10 +852,10 @@ saving_popup.execute = False
 def save_current_course():
     # Open the CSV file in write mode
     with open(game.current_file, mode='w', newline='') as file:
-        writer = csv.writer(file)
+        write = writer(file)
         
         # Write headers to the CSV file
-        writer.writerow(['Key', 'ID', 'Type', 'Layer', 'X', 'Y'])
+        write.writerow(['Key', 'ID', 'Type', 'Layer', 'X', 'Y'])
 
         # Loop through each item in the obstacle_dict
         for key, obj in game.shape_blockchain_ids.items():
@@ -910,7 +910,7 @@ def save_current_course():
 
 def process_file_load(file):
      with open(file, mode='r', newline='') as file:
-        reader = csv.reader(file)
+        reader = reader(file)
         next(reader)  # Skip the header row
         
         """new_arc = arc_object(shape_id_blockchain, main_screen_x_center, main_screen_y_center, main_screen_x_center + 50, main_screen_y_center + 50, "cyan", shape_id_blockchain + 1, main_screen)
@@ -944,7 +944,7 @@ def process_file_load(file):
                 game.mouse_layer = game.shape_id_blockchain + 1
                 game.shape_id_blockchain += 1
 
-class Propellor:
+class Propellor():
     def __init__(self, path, center_coordinates, scale_factor, rotation_speed, screen):
         self.path = path
         self.center_coordinates = center_coordinates
@@ -978,7 +978,7 @@ def simulator_exit():
     print(f'Average FPS: {round(game.average_fps)}')
     pygame.quit()
 
-class Drone:
+class Drone():
     def __init__(self, obstacle_map, center_coordinates, orientation = 0):
         self.sprite_path = "Mechatronics II/Drone Course Simulator/Assets/Drone_Disconnected_No_Prop.png"
         self.center_coordinates = (center_coordinates[0] + game.newX, center_coordinates[1])  # Now the center of the drone
@@ -996,6 +996,9 @@ class Drone:
         self.active_command = None
         self.active_args = None
         self.executing_commands = True
+        self.wait_time = 0
+        self.waiting = True
+        self.buffer_time = 0.75
 
         # Load and scale image
         self.icon = pygame.image.load(self.sprite_path).convert_alpha()
@@ -1024,6 +1027,7 @@ class Drone:
         initial_angle = self.rotation_angle
         # Gradually interpolate between the initial and target angle
         self.rotation_angle = (initial_angle - move_angle) % 360
+        self.waiting = True
 
     def _rotate_cw(self, angle):
         speed = 72 #deg/s
@@ -1046,6 +1050,7 @@ class Drone:
         initial_angle = self.rotation_angle
         # Gradually interpolate between the initial and target angle
         self.rotation_angle = (initial_angle + move_angle) % 360
+        self.waiting = True
 
     def _forward(self, distance):
         """
@@ -1065,11 +1070,11 @@ class Drone:
         else:
             move_dist = dist
         # Convert the rotation angle to radians
-        angle_radians = math.radians(self.rotation_angle)  # Invert the angle to match Pygame's coordinates
+        angle_radians = radians(self.rotation_angle)  # Invert the angle to match Pygame's coordinates
 
         # Calculate the movement vector
-        dx = move_dist * math.cos(angle_radians)
-        dy = move_dist * math.sin(angle_radians)
+        dx = move_dist * cos(angle_radians)
+        dy = move_dist * sin(angle_radians)
 
         # Update the drone's position
         new_x = self.center_coordinates[0] + dx
@@ -1077,9 +1082,16 @@ class Drone:
 
         # Set the new coordinates
         self.center_coordinates = (new_x, new_y)
+        self.waiting = True
     
     def _land():
         print("Landed")
+
+    def _wait(self, time):
+        self.wait_time += game.dt
+        if self.wait_time >= time + self.buffer_time:
+            self.animating_command = False
+            self.wait_time = 0
 
     """Queueing Operations"""
     def forward(self, distance):
@@ -1094,10 +1106,12 @@ class Drone:
         """Queue a counterclockwise rotation command."""
         self.command_queue.append(("rotate_ccw", angle))
 
+    def wait(self, time):
+        self.command_queue.append(("wait", time))
+
     def land(self):
         """Queue a land command."""
         self.command_queue.append(("land",))
-
 
     # New: Execute the next command in the queue
     def execute_next_command(self):
@@ -1111,13 +1125,20 @@ class Drone:
                 self._rotate_ccw(self.active_args)
             elif self.active_command == "land":
                 pass
+            elif self.active_command == "wait":
+                self._wait(self.active_args)
         
         else:
-            try:
-                self.active_command, self.active_args = self.command_queue.pop(0)
+            if self.waiting:
+                self.active_command, self.active_args = "wait", self.buffer_time
                 self.animating_command = True
-            except IndexError:
-                self.executing_commands = False
+                self.waiting = False
+            else:
+                try:
+                    self.active_command, self.active_args = self.command_queue.pop(0)
+                    self.animating_command = True
+                except IndexError:
+                    self.executing_commands = False
     
     # Start Sim
     def launch(self):
