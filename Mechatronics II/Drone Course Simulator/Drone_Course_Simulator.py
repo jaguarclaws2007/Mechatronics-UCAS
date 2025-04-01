@@ -242,11 +242,11 @@ class arc_object(object):
             except ZeroDivisionError:
                 pass
             
-        
-        # Draw hitboxes
-        pygame.draw.rect(self.surface, "yellow", self.expansion_hitbox_1, 2)
-        pygame.draw.rect(self.surface, "yellow", self.expansion_hitbox_2, 2)
-        pygame.draw.ellipse(self.surface, "yellow", self.expansion_hitbox_3, 2)
+        if game.type == "map_builder":
+            # Draw hitboxes
+            pygame.draw.rect(self.surface, "yellow", self.expansion_hitbox_1, 2)
+            pygame.draw.rect(self.surface, "yellow", self.expansion_hitbox_2, 2)
+            pygame.draw.ellipse(self.surface, "yellow", self.expansion_hitbox_3, 2)
 
         
 
@@ -268,7 +268,8 @@ class ellipse_object(object):
         self.hitbox = (self.x - self.width / 2, self.y - self.height / 2, self.width, self.height)
         self.expansion_hitbox = (self.x + self.width / 2, self.y - (self.height / 2) - 20, 20, 20)
         pygame.draw.ellipse(self.surface, self.color, self.hitbox)
-        pygame.draw.rect(self.surface, "yellow", self.expansion_hitbox, 2)
+        if game.type == "map_builder":
+            pygame.draw.rect(self.surface, "yellow", self.expansion_hitbox, 2)
 
 class rectangle_object(object):
     def __init__(self, id, x, y, width, height, color, layer, surface):
@@ -288,7 +289,8 @@ class rectangle_object(object):
         self.hitbox = (self.x - self.width / 2, self.y - self.height / 2, self.width, self.height)
         self.expansion_hitbox = (self.x + self.width / 2, self.y - (self.height / 2) - 20, 20, 20)
         pygame.draw.rect(self.surface, self.color, self.hitbox)
-        pygame.draw.rect(self.surface, "yellow", self.expansion_hitbox, 2)
+        if game.type == "map_builder":
+            pygame.draw.rect(self.surface, "yellow", self.expansion_hitbox, 2)
 
 '''Detection'''
 def hitbox(hitbox_stationary, hitbox_mobile):
