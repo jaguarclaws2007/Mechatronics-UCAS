@@ -906,7 +906,7 @@ def save_current_course():
                     ]
 
             # Write the row to the CSV file
-            writer.writerow(data)
+            writ.writerow(data)
 
 
 def process_file_load(file):
