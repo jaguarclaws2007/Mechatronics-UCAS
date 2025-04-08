@@ -4,6 +4,7 @@ from math import pi, atan2, sqrt, cos, sin, radians
 from csv import reader, writer
 from os import listdir
 from random import randint
+import numpy as np
 pygame.init()
 
 class Game():
@@ -184,7 +185,7 @@ class arc_object():
         if start_angle <= angle_point <= end_angle:
             return True
         return False
-    
+
     def draw(self):
         threshold = 10  # Distance threshold to switch from arc to line
         distance = self.distance_to_line(self.x3, self.y3, self.x1, self.y1, self.x2, self.y2)
@@ -852,10 +853,10 @@ saving_popup.execute = False
 def save_current_course():
     # Open the CSV file in write mode
     with open(game.current_file, mode='w', newline='') as file:
-        write = writer(file)
+        writ = writer(file)
         
         # Write headers to the CSV file
-        write.writerow(['Key', 'ID', 'Type', 'Layer', 'X', 'Y'])
+        writ.writerow(['Key', 'ID', 'Type', 'Layer', 'X', 'Y'])
 
         # Loop through each item in the obstacle_dict
         for key, obj in game.shape_blockchain_ids.items():
@@ -910,13 +911,13 @@ def save_current_course():
 
 def process_file_load(file):
      with open(file, mode='r', newline='') as file:
-        reader = reader(file)
-        next(reader)  # Skip the header row
+        read = reader(file)
+        next(read)  # Skip the header row
         
         """new_arc = arc_object(shape_id_blockchain, main_screen_x_center, main_screen_y_center, main_screen_x_center + 50, main_screen_y_center + 50, "cyan", shape_id_blockchain + 1, main_screen)
             shape_blockchain_ids[new_arc.blockchain_id] = new_arc"""
 
-        for row in reader:
+        for row in read:
             if row[2] == "arc":
                 new_arc = arc_object(int(row[1]), float(row[6]), float(row[7]), float(row[8]), float(row[9]), row[12], int(row[3]), game.main_screen)
                 new_arc.x3 = float(row[10])
@@ -990,6 +991,7 @@ class Drone():
         
         # Add the rotation angle
         self.rotation_angle = orientation  # Initialize the drone facing 0 degrees (up)
+        self.height = 0
 
         # New: Queue for storing commands
         self.command_queue = []
@@ -1013,12 +1015,12 @@ class Drone():
         est_time = angle / speed
         percent = dt / est_time
         ang = percent * angle
-        self.active_args -= ang
         if percent >= 0.95:
             move_angle = self.active_args
             self.animating_command = False
         else:
             move_angle = ang
+        self.active_args -= ang
         """
         Rotate the drone clockwise by the specified angle over a given duration (in milliseconds).
         :param angle: The total angle to rotate by.
@@ -1036,12 +1038,12 @@ class Drone():
         est_time = angle / speed
         percent = dt / est_time
         ang = percent * angle
-        self.active_args -= ang
         if percent >= 0.95:
             move_angle = self.active_args
             self.animating_command = False
         else:
             move_angle = ang
+        self.active_args -= ang
         """
         Rotate the drone clockwise by the specified angle over a given duration (in milliseconds).
         :param angle: The total angle to rotate by.
@@ -1051,6 +1053,139 @@ class Drone():
         # Gradually interpolate between the initial and target angle
         self.rotation_angle = (initial_angle + move_angle) % 360
         self.waiting = True
+
+    def calculate_circumcircle(self, x1, y1, z1, x2, y2, z2):
+        #Direction vectors from Drone center at (0,0,0)
+        D_ab = (x1, y1, z1)
+        D_ac = (x2, y2, z2)
+
+        #Midpoints of those vectors
+        M_ab = (x1 / 2, y1 / 2, z1 / 2)
+        M_ac = (x2 / 2, y2 / 2, z2 / 2)
+
+        #Othographic Normal to those vectors (Normal vector to plane of those 3 points and 2 vectors)
+        N = np.linalg.cross(D_ab, D_ac)
+
+        #Direction vectors for the planar orthagonal bisectors of the original direcion vectors
+        D_bab = np.linalg.cross(N, D_ab)
+        D_bac = np.linalg.cross(N, D_ac)
+
+        #Solve various cases for parametric intercept "t"
+        N1 = D_bac[0] * (M_ab[1] - M_ac[1]) - D_bac[1] * (M_ab[0] - M_ac[0])
+        N2 = D_bac[0] * (M_ab[2] - M_ac[2]) - D_bac[2] * (M_ab[0] - M_ac[0])
+        N3 = D_bac[2] * (M_ab[1] - M_ac[1]) - D_bac[1] * (M_ab[2] - M_ac[2])
+
+        D1 = D_bab[0] * D_bac[1] - D_bac[0] * D_bab[1]
+        D2 = D_bab[0] * D_bac[2] - D_bac[0] * D_bab[2]
+        D3 = D_bab[2] * D_bac[1] - D_bac[2] * D_bab[2]
+
+        #Avoid 0 division when bisector vectors are only skewed in a plane and not intercepting
+        if D1 != 0:
+            T_bi = N1 / D1
+        elif D2 != 0:
+            T_bi = N2 / D2
+        else:
+            T_bi = N3 / D3
+
+        #Bisectors intercept
+        P_bi = (M_ab[0] + T_bi * D_bab[0], M_ab[1] + T_bi * D_bab[1], M_ab[2] + T_bi * D_bab[2])
+
+        #Circumcircle radius
+        R_cc = sqrt((P_bi[0] ** 2) + (P_bi[1] ** 2) + (P_bi[2] ** 2))
+
+        #Scalar reference unit vector 1 (Orthagonal to N and SV2 on plane ABC, made with cross of N and (1,0,1))
+        P_d1 = (N[1], -(N[0] - N[2]), -N[1])
+        P_d1m = sqrt((P_d1[0] ** 2) + (P_d1[1] ** 2) + (P_d1[2] ** 2))
+        S_v1 = (P_d1[0] / P_d1m, P_d1[1]/ P_d1m, P_d1[2] / P_d1m)
+
+        #Scalar reference unit vector 2 (Orthagonal to N and SV1 on plane ABC, made with cross of N and (0,1,0))
+        P_d2 = (-N[2], 0, N[0])
+        P_d2m = sqrt((P_d2[0] ** 2) + (P_d2[1] ** 2) + (P_d2[2] ** 2))
+        S_v2 = (P_d2[0] / P_d2m, P_d2[1]/ P_d2m, P_d2[2] / P_d2m)
+
+        #Parametric circumcircle graphed by C_{x,y,z >> i}(t)-> (P_bi)[i] + R_cc * ((S_v1)[i] * cos(t) + (S_v2)[i] * sin(t))
+        
+
+        """Compute t range such that the circumcircular arc starts at the drone (0,0,0),
+        and ends with the farthest point B or C such that all three points are passed through"""
+
+        def get_t(point):
+            rel = (np.array(point) - np.array((P_bi[0], P_bi[1], P_bi[2]))) / R_cc
+            a = np.dot(rel, np.array((S_v1[0], S_v1[1], S_v1[2])))
+            b = np.dot(rel, np.array((S_v2[0], S_v2[1], S_v2[2])))
+            return np.arctan2(b, a) % (2 * np.pi)
+
+        t0 = get_t([0, 0, 0])
+        t1 = get_t((x1, y1, z1))
+        t2 = get_t((x2, y2, z2))
+
+        # Choose the larger t value to ensure passing through both points
+        t_candidates = np.array([t1, t2])
+        deltas = (t_candidates - t0) % (2 * np.pi)
+        t_end = t0 + np.max(deltas)
+
+        return t0, t_end, t0, t1, t2, P_bi, R_cc, S_v1, S_v2
+
+    def _follow_arc(self, x1, y1, z1, x2, y2, z2):
+        speed = 150  # cm/s
+        dt = game.dt
+        t = self.active_args[0]
+        TWO_PI = 2 * pi
+
+        # The drone's world position when the arc begins
+        cx, cy = self.center_coordinates
+
+        # Calculate and store arc data if not yet calculated
+        if len(self.active_args) < 3:
+            t0, t_end, _, _, _, center, radius, sv1, sv2 = self.calculate_circumcircle(
+                x1, y1, z1, x2, y2, z2
+            )
+            self.active_args = list(self.active_args)
+            self.active_args.append((center, radius, sv1, sv2, t_end))
+
+
+        # Unpack stored arc data
+        center, radius, sv1, sv2, t_end = self.active_args[2]
+
+        # Local arc position (relative to drone at origin)
+        lx = center[0] + radius * (sv1[0] * cos(t) + sv2[0] * sin(t))
+        ly = center[1] + radius * (sv1[1] * cos(t) + sv2[1] * sin(t))
+
+        # Translate to world coordinates (apply arc relative to real position)
+        wx = cx + lx
+        wy = cy + ly
+
+        # Update drone position along the arc
+        if t < t_end:
+            self.center_coordinates = (wx, wy)
+            self.active_args[0] += dt
+        else:
+            self.animating_command = False
+            self.waiting = True
+
+
+    def arc_path(self, t, cx, cy, cz, sv1x, sv1y, sv1z, sv2x, sv2y, sv2z, radius):
+        """
+        Returns a point (x, y, z) on a 3D arc at parameter t.
+
+        Parameters:
+            t       — arc parameter (angle in radians)
+            cx, cy, cz — center of circle
+            sv1     — first basis vector (scaled by cos(t))
+            sv2     — second basis vector (scaled by sin(t))
+            radius  — radius of the arc
+
+        Returns:
+            (x, y, z) — position on arc at angle t
+        """
+        x = cx + radius * (sv1x * cos(t) + sv2x * sin(t))
+        y = cy + radius * (sv1y * cos(t) + sv2y * sin(t))
+        z = cz + radius * (sv1z * cos(t) + sv2z * sin(t))
+        
+        return x, y
+
+
+
 
     def _forward(self, distance):
         """
@@ -1063,12 +1198,12 @@ class Drone():
         est_time = distance / speed
         percent = dt / est_time
         dist = percent * distance
-        self.active_args -= dist
         if percent >= 0.95:
             move_dist = self.active_args
             self.animating_command = False
         else:
             move_dist = dist
+        self.active_args -= dist
         # Convert the rotation angle to radians
         angle_radians = radians(self.rotation_angle)  # Invert the angle to match Pygame's coordinates
 
@@ -1084,8 +1219,52 @@ class Drone():
         self.center_coordinates = (new_x, new_y)
         self.waiting = True
     
-    def _land():
+    def _land(self):
         print("Landed")
+
+    def _up(self, distance):
+        speed = 15 #cm/s
+        dt = game.dt
+
+        est_time = distance / speed
+        percent = dt / est_time
+        dist = percent * distance
+        
+        if percent >= 0.95:
+            move_dist = self.active_args
+            self.animating_command = False
+        else:
+            move_dist = dist
+        self.active_args -= dist
+        """
+        Rotate the drone clockwise by the specified angle over a given duration (in milliseconds).
+        :param angle: The total angle to rotate by.
+        :param duration: The time duration for the full rotation in milliseconds.
+        """
+        self.height += move_dist
+        self.waiting = True
+        print(self.height)
+
+    def _down(self, distance):
+        speed = 15 #cm/s
+        dt = game.dt
+
+        est_time = distance / speed
+        percent = dt / est_time
+        dist = percent * distance
+        if percent >= 0.95:
+            move_dist = self.active_args
+            self.animating_command = False
+        else:
+            move_dist = dist
+        self.active_args -= dist
+        """
+        Rotate the drone clockwise by the specified angle over a given duration (in milliseconds).
+        :param angle: The total angle to rotate by.
+        :param duration: The time duration for the full rotation in milliseconds.
+        """
+        self.height -= move_dist
+        self.waiting = True
 
     def _wait(self, time):
         self.wait_time += game.dt
@@ -1113,6 +1292,16 @@ class Drone():
         """Queue a land command."""
         self.command_queue.append(("land",))
 
+    def up(self, distance):
+        self.command_queue.append(("up", distance))
+    
+    def down(self, distance):
+        self.command_queue.append(("down", distance))
+
+    def curve(self, x1, y1, z1, x2, y2, z2):
+        t = 0
+        self.command_queue.append(("curve", (t, (x1, y1, z1, x2, y2, z2))))
+
     # New: Execute the next command in the queue
     def execute_next_command(self):
         """Execute the next queued command, if any."""            
@@ -1127,6 +1316,12 @@ class Drone():
                 pass
             elif self.active_command == "wait":
                 self._wait(self.active_args)
+            elif self.active_command == "up":
+                self._up(self.active_args)
+            elif self.active_command == "down":
+                self._down(self.active_args)
+            elif self.active_command == "curve":
+               self._follow_arc(*self.active_args[1])
         
         else:
             if self.waiting:
