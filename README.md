@@ -88,6 +88,7 @@ Lastly, to make sure your terminal is in the correct environment, simply click t
 **You've finished setup!!!**
 
 ## (Very) Useful Resources
+- Desmos Arc Calculator [calculator](https://www.desmos.com/3d/fca8ipimy0)
 - W3 Schools python [tutorial](https://www.w3schools.com/python/)
 - Djitellopy library [documentation](https://djitellopy.readthedocs.io/en/latest/tello/)
 - Mechatronics-UCAS github [link](https://github.com/Nbobito/Mechatronics-UCAS)
