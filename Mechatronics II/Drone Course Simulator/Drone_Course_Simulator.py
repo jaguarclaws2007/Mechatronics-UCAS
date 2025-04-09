@@ -80,6 +80,7 @@ class Game():
 game = Game()
 
 '''Shape Classes'''
+
 class arc_object():
     def __init__(self, id, x1, y1, x2, y2, color, layer, surface):
         self.blockchain_id = id
@@ -248,8 +249,6 @@ class arc_object():
             pygame.draw.rect(self.surface, "yellow", self.expansion_hitbox_1, 2)
             pygame.draw.rect(self.surface, "yellow", self.expansion_hitbox_2, 2)
             pygame.draw.ellipse(self.surface, "yellow", self.expansion_hitbox_3, 2)
-
-        
 
 class ellipse_object():
     def __init__(self, id, x, y, width, height, color, layer, surface):
@@ -1054,7 +1053,8 @@ class Drone():
         # Gradually interpolate between the initial and target angle
         self.rotation_angle = (initial_angle + move_angle) % 360
 
-    def calculate_circumcircle(self, x1, y1, z1, x2, y2, z2):
+    @staticmethod
+    def calculate_circumcircle(x1, y1, z1, x2, y2, z2):
         y1 = -y1
         y2 = -y2
         #Direction vectors from Drone center at (0,0,0)
@@ -1114,6 +1114,7 @@ class Drone():
         """Compute t range such that the circumcircular arc starts at the drone (0,0,0),
         and ends with the farthest point B or C such that all three points are passed through"""
 
+        @staticmethod
         def get_t(point):
             rel = (np.array(point) - np.array((P_bi[0], P_bi[1], P_bi[2]))) / R_cc
             a = np.dot(rel, np.array((S_v1[0], S_v1[1], S_v1[2])))
@@ -1133,7 +1134,7 @@ class Drone():
 
         return t0, t_end, t0, t1, t2, P_bi, R_cc, S_v1, S_v2
 
-    def _follow_arc(self, x1, y1, z1, x2, y2, z2):
+    def _curve(self, x1, y1, z1, x2, y2, z2):
         speed = 150  # cm/s
         dt = game.dt
         current_t = self.active_args[0]
@@ -1172,6 +1173,7 @@ class Drone():
             self.animating_command = False
             self.waiting = True
 
+    @staticmethod
     def arc_path(self, t, cx, cy, cz, sv1x, sv1y, sv1z, sv2x, sv2y, sv2z, radius):
         """
         Returns a point (x, y, z) on a 3D arc at parameter t.
@@ -1243,6 +1245,70 @@ class Drone():
         self.active_args -= dist
         # Convert the rotation angle to radians
         angle_radians = radians(self.rotation_angle)  # Invert the angle to match Pygame's coordinates
+
+        # Calculate the movement vector
+        dx = move_dist * cos(angle_radians)
+        dy = move_dist * sin(angle_radians)
+
+        # Update the drone's position
+        new_x = self.center_coordinates[0] + dx
+        new_y = self.center_coordinates[1] + dy  # Add dy since Pygame's y-axis increases downward
+
+        # Set the new coordinates
+        self.center_coordinates = (new_x, new_y)
+        self.waiting = True
+
+    def _right(self, distance):
+        """
+        Move the drone Right by the specified distance.
+        :param distance: The distance to move.
+        """
+        speed = 150 #cm/s
+        dt = game.dt
+
+        est_time = distance / speed
+        percent = dt / est_time
+        dist = percent * distance
+        if percent >= 0.95:
+            move_dist = self.active_args
+            self.animating_command = False
+        else:
+            move_dist = dist
+        self.active_args -= dist
+        # Convert the rotation angle to radians
+        angle_radians = radians(self.rotation_angle + 90)  # Invert the angle to match Pygame's coordinates
+
+        # Calculate the movement vector
+        dx = move_dist * cos(angle_radians)
+        dy = move_dist * sin(angle_radians)
+
+        # Update the drone's position
+        new_x = self.center_coordinates[0] + dx
+        new_y = self.center_coordinates[1] + dy  # Add dy since Pygame's y-axis increases downward
+
+        # Set the new coordinates
+        self.center_coordinates = (new_x, new_y)
+        self.waiting = True
+
+    def _left(self, distance):
+        """
+        Move the drone Left by the specified distance.
+        :param distance: The distance to move.
+        """
+        speed = 150 #cm/s
+        dt = game.dt
+
+        est_time = distance / speed
+        percent = dt / est_time
+        dist = percent * distance
+        if percent >= 0.95:
+            move_dist = self.active_args
+            self.animating_command = False
+        else:
+            move_dist = dist
+        self.active_args -= dist
+        # Convert the rotation angle to radians
+        angle_radians = radians(self.rotation_angle - 90)  # Invert the angle to match Pygame's coordinates
 
         # Calculate the movement vector
         dx = move_dist * cos(angle_radians)
@@ -1344,6 +1410,12 @@ class Drone():
     def backward(self, distance):
         self.command_queue.append(("backward", distance))
 
+    def right(self, distance):
+        self.command_queue.append(("right", distance))
+
+    def left(self, distance):
+        self.command_queue.append(("left", distance))
+
     # New: Execute the next command in the queue
     def execute_next_command(self):
         """Execute the next queued command, if any."""            
@@ -1363,9 +1435,13 @@ class Drone():
             elif self.active_command == "down":
                 self._down(self.active_args)
             elif self.active_command == "curve":
-               self._follow_arc(*self.active_args[1])
+               self._curve(*self.active_args[1])
             elif self.active_command == "backward":
                 self._backward(self.active_args)
+            elif self.active_command == "right":
+                self._right(self.active_args)
+            elif self.active_command == "left":
+                self._left(self.active_args)
         
         else:
             if self.waiting:
@@ -1381,7 +1457,7 @@ class Drone():
     
     # Start Sim
     def launch(self):
-        fly_drone(self, self.obstacle_map)
+        drone_flyer(self, self.obstacle_map)
 
     def draw(self):
         if self.executing_commands:
@@ -1686,7 +1762,7 @@ def map_maker():
         gametime_runner()
     simulator_exit()
 
-def fly_drone(drone, map):
+def drone_flyer(drone, map):
     game.type = "drone_flyer"
     fly_course_name = f"{map}.csv"
     game.current_file = f"Mechatronics II/Drone Course Simulator/Saved Maps/{fly_course_name}"
