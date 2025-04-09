@@ -1041,6 +1041,7 @@ class Drone():
         if percent >= 0.95:
             move_angle = self.active_args
             self.animating_command = False
+            self.waiting = True
         else:
             move_angle = ang
         self.active_args -= ang
@@ -1052,9 +1053,10 @@ class Drone():
         initial_angle = self.rotation_angle
         # Gradually interpolate between the initial and target angle
         self.rotation_angle = (initial_angle + move_angle) % 360
-        self.waiting = True
 
     def calculate_circumcircle(self, x1, y1, z1, x2, y2, z2):
+        y1 = -y1
+        y2 = -y2
         #Direction vectors from Drone center at (0,0,0)
         D_ab = (x1, y1, z1)
         D_ac = (x2, y2, z2)
@@ -1089,6 +1091,7 @@ class Drone():
 
         #Bisectors intercept
         P_bi = (M_ab[0] + T_bi * D_bab[0], M_ab[1] + T_bi * D_bab[1], M_ab[2] + T_bi * D_bab[2])
+        P_bi = (P_bi[0], -P_bi[1], P_bi[2])  # Flip Y
 
         #Circumcircle radius
         R_cc = sqrt((P_bi[0] ** 2) + (P_bi[1] ** 2) + (P_bi[2] ** 2))
@@ -1096,12 +1099,14 @@ class Drone():
         #Scalar reference unit vector 1 (Orthagonal to N and SV2 on plane ABC, made with cross of N and (1,0,1))
         P_d1 = (N[1], -(N[0] - N[2]), -N[1])
         P_d1m = sqrt((P_d1[0] ** 2) + (P_d1[1] ** 2) + (P_d1[2] ** 2))
-        S_v1 = (P_d1[0] / P_d1m, P_d1[1]/ P_d1m, P_d1[2] / P_d1m)
+        S_v1 = (P_d1[0] / P_d1m, -P_d1[1] / P_d1m, P_d1[2] / P_d1m)
+
+
 
         #Scalar reference unit vector 2 (Orthagonal to N and SV1 on plane ABC, made with cross of N and (0,1,0))
         P_d2 = (-N[2], 0, N[0])
         P_d2m = sqrt((P_d2[0] ** 2) + (P_d2[1] ** 2) + (P_d2[2] ** 2))
-        S_v2 = (P_d2[0] / P_d2m, P_d2[1]/ P_d2m, P_d2[2] / P_d2m)
+        S_v2 = (P_d2[0] / P_d2m, -P_d2[1] / P_d2m, P_d2[2] / P_d2m)
 
         #Parametric circumcircle graphed by C_{x,y,z >> i}(t)-> (P_bi)[i] + R_cc * ((S_v1)[i] * cos(t) + (S_v2)[i] * sin(t))
         
@@ -1131,49 +1136,41 @@ class Drone():
     def _follow_arc(self, x1, y1, z1, x2, y2, z2):
         speed = 150  # cm/s
         dt = game.dt
-        current_t = self.active_args[0]  # previously stored parameter
+        current_t = self.active_args[0]
 
-        # The drone's initial world anchor -- this should be stored once at start of arc motion
         if not hasattr(self, 'arc_anchor'):
-            self.arc_anchor = self.center_coordinates  # e.g. (200,200)
+            self.arc_anchor = self.center_coordinates
         anchor_x, anchor_y = self.arc_anchor
 
-        # Calculate and store arc data if not yet calculated
         if len(self.active_args) < 3:
             result = self.calculate_circumcircle(x1, y1, z1, x2, y2, z2)
-            # Unpack as: (center, radius, sv1, sv2, t_end, t0)
             self.active_args = list(self.active_args)
             self.active_args.append((result[5], result[6], result[7], result[8], result[1], result[0]))
-
-            # Set current_t to t0, from active_args[2]
             current_t = result[0]
             self.active_args[0] = current_t
 
-        # Unpack stored arc data
         center, radius, sv1, sv2, t_end, t0_value = self.active_args[2]
 
-        # Compute local arc position using current_t
-        lx = center[0] + radius * (sv1[0] * cos(current_t) + sv2[0] * sin(current_t))
-        ly = center[1] + radius * (sv1[1] * cos(current_t) + sv2[1] * sin(current_t))
-        # If you have z, compute similarly...
-        
-        # Translate to world coordinates using the fixed arc anchor
+        # ✅ Compute how much to increment t based on arc speed
+        arc_dist = speed * dt
+        delta_t = arc_dist / radius
+        next_t = current_t + delta_t
+
+        if next_t > t_end:
+            next_t = t_end
+
+        lx = center[0] + radius * (sv1[0] * cos(next_t) + sv2[0] * sin(next_t))
+        ly = center[1] + radius * (sv1[1] * cos(next_t) + sv2[1] * sin(next_t))
         wx = anchor_x + lx
         wy = anchor_y + ly
 
-        # Update drone position along the arc
-        if current_t < t_end:
-            self.center_coordinates = (wx, wy)
-            current_t += dt
-            self.active_args[0] = current_t
-        else:
-            # End of arc: cleanup
+        self.center_coordinates = (wx, wy)
+        self.active_args[0] = next_t
+
+        if next_t >= t_end:
             del self.arc_anchor
             self.animating_command = False
             self.waiting = True
-
-
-
 
     def arc_path(self, t, cx, cy, cz, sv1x, sv1y, sv1z, sv2x, sv2y, sv2z, radius):
         """
