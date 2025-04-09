@@ -76,6 +76,13 @@ class Game():
         self.change_y = 0
 
         self.type = None
+        self.camera_x = 0
+        self.camera_y = 0
+        self.zoom = 1.0
+        self.camera_speed = 30
+        self.pan_x = 0
+        self.pan_y = 0
+        self.panning = False
 
 game = Game()
 
@@ -193,9 +200,9 @@ class arc_object():
 
         # Update hitboxes
         self.hitbox = (self.x1 + self.x, self.y1 + self.y, self.x2 + self.x, self.y2 + self.y)
-        self.expansion_hitbox_1 = (self.x1 + self.x - 10, self.y1 + self.y - 10, 20, 20)
-        self.expansion_hitbox_2 = (self.x2 + self.x - 10, self.y2 + self.y - 10, 20, 20)
-        self.expansion_hitbox_3 = (self.x3 + self.x - 10, self.y3 + self.y - 10, 20, 20)
+        self.expansion_hitbox_1 = (self.x1 + self.x - 10 - game.camera_x, self.y1 + self.y - 10 - game.camera_y, 20, 20)
+        self.expansion_hitbox_2 = (self.x2 + self.x - 10 - game.camera_x, self.y2 + self.y - 10 - game.camera_y, 20, 20)
+        self.expansion_hitbox_3 = (self.x3 + self.x - 10 - game.camera_x, self.y3 + self.y - 10 - game.camera_y, 20, 20)
 
         if distance < threshold and self.can_lock:
             self.locked = True
@@ -205,8 +212,8 @@ class arc_object():
             self.x3 = self.mid_x_main
             self.y3 = self.mid_y_main
             pygame.draw.line(self.surface, self.color, 
-                             (self.x1 + self.x, self.y1 + self.y), 
-                             (self.x2 + self.x, self.y2 + self.y), 5)
+                             (self.x1 + self.x - game.camera_x, self.y1 + self.y - game.camera_y), 
+                             (self.x2 + self.x - game.camera_x, self.y2 + self.y - game.camera_y), 5)
         elif not self.can_lock or not (distance < threshold):
             self.locked = False
             try:
@@ -239,7 +246,8 @@ class arc_object():
 
                 # Construct Arc
                 pygame.draw.arc(self.surface, self.color, 
-                                    (self.x_I - self.radius, self.y_I - self.radius, self.radius * 2, self.radius * 2), 
+                                    (self.x_I - self.radius - game.camera_x, self.y_I - self.radius - game.camera_y, 
+                                    self.radius * 2, self.radius * 2), 
                                     self.start_angle, self.end_angle, 1)
             except ZeroDivisionError:
                 pass
@@ -265,8 +273,8 @@ class ellipse_object():
         self.expansion_hitbox = (x + width / 2, y - (height / 2) - 20, 20, 20)
     
     def draw(self):
-        self.hitbox = (self.x - self.width / 2, self.y - self.height / 2, self.width, self.height)
-        self.expansion_hitbox = (self.x + self.width / 2, self.y - (self.height / 2) - 20, 20, 20)
+        self.hitbox = (self.x - self.width / 2 - game.camera_x, self.y - self.height / 2 - game.camera_y, self.width, self.height)
+        self.expansion_hitbox = (self.x + self.width / 2 - game.camera_x, self.y - (self.height / 2) - 20 - game.camera_y, 20, 20)
         pygame.draw.ellipse(self.surface, self.color, self.hitbox)
         if game.type == "map_builder":
             pygame.draw.rect(self.surface, "yellow", self.expansion_hitbox, 2)
@@ -286,8 +294,8 @@ class rectangle_object():
         self.expansion_hitbox = (x + width / 2, y - (height / 2) - 20, 20, 20)
 
     def draw(self):
-        self.hitbox = (self.x - self.width / 2, self.y - self.height / 2, self.width, self.height)
-        self.expansion_hitbox = (self.x + self.width / 2, self.y - (self.height / 2) - 20, 20, 20)
+        self.hitbox = (self.x - self.width / 2 - game.camera_x, self.y - self.height / 2 - game.camera_y, self.width, self.height)
+        self.expansion_hitbox = (self.x + self.width / 2 - game.camera_x, self.y - (self.height / 2) - 20 - game.camera_y, 20, 20)
         pygame.draw.rect(self.surface, self.color, self.hitbox)
         if game.type == "map_builder":
             pygame.draw.rect(self.surface, "yellow", self.expansion_hitbox, 2)
@@ -700,9 +708,9 @@ def exit_action_popup():
     while showing and game.running:
         critical_events()
         main_screen_background()
+        draw_obstacles()
         main_screen_menu()
         get_user_inputs()
-        draw_obstacles()
         exit_popup.fill((200, 200, 200))  # Clear previous renders
         game.game_font.render_to(exit_popup, (10, 10), "Test", (0, 0, 0))  # Black text at position (50, 80)
         game.main_screen.blit(exit_popup, (exit_popup_x, exit_popup_y))
@@ -721,21 +729,37 @@ def critical_events():
         
 
 def main_screen_background():
-    if game.type == "map_builder":
-        '''Background and Grid lines for map builder type menu'''
-        game.main_screen.fill(game.background_color)
-        for i in range(game.newX + game.blueprint_spacing, game.main_screen_size_x + 1, game.blueprint_spacing):
-            pygame.draw.line(game.main_screen, game.accent_color, (i, 0), (i, game.main_screen_size_y))
-        for i in range(0, game.main_screen_size_y + 1, game.blueprint_spacing):
-            pygame.draw.line(game.main_screen, game.accent_color, (game.newX, i), (game.main_screen_size_x, i))
+    screen = game.main_screen
+    zoom = game.zoom
+    cam_x = game.camera_x
+    cam_y = game.camera_y
+    spacing = game.blueprint_spacing
 
-    elif game.type == "drone_flyer":
-        '''Background and Grid lines for drone flyer type menu'''
-        game.main_screen.fill(game.background_color)
-        for i in range(game.blueprint_spacing, game.main_screen_size_x + 1, game.blueprint_spacing):
-            pygame.draw.line(game.main_screen, game.accent_color, (i, 0), (i, game.main_screen_size_y))
-        for i in range(0, game.main_screen_size_y + 1, game.blueprint_spacing):
-            pygame.draw.line(game.main_screen, game.accent_color, (0, i), (game.main_screen_size_x, i))
+    screen.fill(game.background_color)
+
+    # Determine visible range in world coordinates
+    screen_width, screen_height = game.main_screen_size_x, game.main_screen_size_y
+    world_left = cam_x
+    world_right = cam_x + screen_width / zoom
+    world_top = cam_y
+    world_bottom = cam_y + screen_height / zoom
+
+    # Calculate grid line start positions aligned to the spacing
+    start_x = int(world_left // spacing) * spacing
+    end_x = int(world_right // spacing + 1) * spacing
+    start_y = int(world_top // spacing) * spacing
+    end_y = int(world_bottom // spacing + 1) * spacing
+
+    # Vertical grid lines
+    for x in range(start_x, end_x, spacing):
+        screen_x = int((x - cam_x) * zoom)
+        pygame.draw.line(screen, game.accent_color, (screen_x, 0), (screen_x, screen_height))
+
+    # Horizontal grid lines
+    for y in range(start_y, end_y, spacing):
+        screen_y = int((y - cam_y) * zoom)
+        pygame.draw.line(screen, game.accent_color, (0, screen_y), (screen_width, screen_y))
+
 
 def main_screen_menu():
     '''Menu'''
@@ -763,6 +787,7 @@ def snap_mode_correct(x_coord, y_coord):
 
 def get_user_inputs():
     '''Keyboard Input'''
+    dt = game.dt
     game.keys = pygame.key.get_pressed()
     if game.keys[pygame.K_x]:
         game.running = False
@@ -770,6 +795,15 @@ def get_user_inputs():
         game.snap_mode = True
     else:
         game.snap_mode = False
+
+    if game.keys[pygame.K_LEFT]:
+        game.camera_x -= game.camera_speed * dt
+    if game.keys[pygame.K_RIGHT]:
+        game.camera_x += game.camera_speed * dt
+    if game.keys[pygame.K_UP]:
+        game.camera_y -= game.camera_speed * dt
+    if game.keys[pygame.K_DOWN]:
+        game.camera_y += game.camera_speed * dt
 
     '''Mouse Calculations'''
     game.old_x = game.x_mouse
@@ -793,6 +827,14 @@ def get_user_inputs():
             game.change_y_count = 0
         else:
             game.change_y = 0
+
+    if (game.keys[pygame.K_LCTRL] or game.keys[pygame.K_RCTRL]) and game.left_click:
+        game.panning = True
+        game.camera_x -= game.change_x
+        game.camera_y -= game.change_y
+    else:
+        game.panning = False
+
 
 def draw_obstacles():
     '''Drawing Shapes'''
@@ -1173,27 +1215,6 @@ class Drone():
             self.animating_command = False
             self.waiting = True
 
-    @staticmethod
-    def arc_path(self, t, cx, cy, cz, sv1x, sv1y, sv1z, sv2x, sv2y, sv2z, radius):
-        """
-        Returns a point (x, y, z) on a 3D arc at parameter t.
-
-        Parameters:
-            t       — arc parameter (angle in radians)
-            cx, cy, cz — center of circle
-            sv1     — first basis vector (scaled by cos(t))
-            sv2     — second basis vector (scaled by sin(t))
-            radius  — radius of the arc
-
-        Returns:
-            (x, y, z) — position on arc at angle t
-        """
-        x = cx + radius * (sv1x * cos(t) + sv2x * sin(t))
-        y = cy + radius * (sv1y * cos(t) + sv2y * sin(t))
-        z = cz + radius * (sv1z * cos(t) + sv2z * sin(t))
-        
-        return x, y
-
     def _backward(self, distance):
         """
         Move the drone forward by the specified distance in the direction it is facing.
@@ -1464,8 +1485,9 @@ class Drone():
             self.execute_next_command()
         """ Draw the drone centered on its coordinates """
         # Rotate the image based on the current angle
+        coordinate = (self.center_coordinates[0] - game.camera_x, self.center_coordinates[1] - game.camera_y)
         rotated_image = pygame.transform.rotate(self.icon_final, -self.rotation_angle)  
-        rect = rotated_image.get_rect(center=self.center_coordinates)
+        rect = rotated_image.get_rect(center = coordinate)
         self.screen.blit(rotated_image, rect)
 
 speed = 160000
@@ -1489,9 +1511,9 @@ def map_maker():
     while game.running:  
         critical_events()
         main_screen_background()
+        draw_obstacles()
         main_screen_menu()
         get_user_inputs()
-        draw_obstacles()
         
         if spup.execute:
             spup.draw()
@@ -1639,34 +1661,6 @@ def map_maker():
                                     mouse_lock = (False, None, None, None, 0, 0)
                                     game.altering_point_3 = False
                                     game.expanding = False
-
-                    if game.moving:
-                        left_x = min(shape.expansion_hitbox_1[0], shape.expansion_hitbox_2[0])
-                        top_y = min(shape.expansion_hitbox_1[1], shape.expansion_hitbox_2[1])
-                        width = abs(shape.expansion_hitbox_1[0] - shape.expansion_hitbox_2[0]) + 20
-                        height = abs(shape.expansion_hitbox_1[1] - shape.expansion_hitbox_2[1]) + 20
-                        hit = hitborder((left_x, top_y, width, height))
-                        if hit[2]:
-                            shape.x += hit[0]
-                            shape.y += hit[1]
-                    else:
-                        hit_1 = hitborder(shape.expansion_hitbox_1)
-                        hit_2 = hitborder(shape.expansion_hitbox_2)
-                        hit_3 = hitborder(shape.expansion_hitbox_3)
-                        if hit_1[2]:
-                            shape.x1 += hit_1[0]
-                            shape.y1 += hit_1[1]
-                        if hit_2[2]:
-                            shape.x2 += hit_2[0]
-                            shape.y2 += hit_2[1]
-                        if hit_3[2]:
-                            shape.x3 += hit_3[0]
-                            shape.y3 += hit_3[1]
-                        
-                        if game.snap_mode:
-                            shape.x1, shape.y1 = snap_mode_correct(shape.x1, shape.y1)
-                            shape.x2, shape.y2 = snap_mode_correct(shape.x2, shape.y2)
-
                 else:
                     if(hitbox(shape.expansion_hitbox, game.mouse_hitbox) or game.expanding) and not (game.moving or game.altering_point_1 or game.altering_point_2) and game.mouse_layer == shape.layer:
                         if game.left_click:
@@ -1695,30 +1689,6 @@ def map_maker():
                             game.shape_lock = (False, None, None)
                             game.mouse_lock = (False, None, None, None, 0, 0)
                             game.expanding = False
-                    
-                    if game.moving:
-                        left_x = shape.hitbox[0]
-                        top_y = shape.hitbox[1] - 20
-                        width = shape.hitbox[2] + 20
-                        height = shape.hitbox[3] + 20
-                        hit = hitborder((left_x, top_y, width, height))
-                        if hit[2]:
-                            shape.x += hit[0]
-                            shape.y += hit[1]
-                    else:
-                        hit = hitborder(shape.expansion_hitbox)
-                        if hit[2]:
-                            shape.x += hit[0] / 2
-                            shape.width += hit[0]
-                            shape.y += hit[1] / 2
-                            shape.height -= hit[1]
-                        
-                        if game.snap_mode:
-                            result = snap_mode_correct(shape.expansion_hitbox[0], shape.expansion_hitbox[1])
-                            shape.width += result[0] - shape.expansion_hitbox[0]
-                            shape.x += (result[0] - shape.expansion_hitbox[0]) / 2
-                            shape.height += result[1] - shape.expansion_hitbox[1]
-                            shape.y += (result[1] - shape.expansion_hitbox[1]) / 2
 
                 """Move Shape Centers"""
                 if shape.type == 'arc' and shape.locked:
