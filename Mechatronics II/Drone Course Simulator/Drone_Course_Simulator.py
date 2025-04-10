@@ -1050,7 +1050,7 @@ class Drone():
         self.icon_final = pygame.transform.scale(self.icon, self.final_size)
 
     def _rotate_ccw(self, angle):
-        speed = 72 #deg/s
+        speed = 144#cm/s 
         dt = game.dt
 
         est_time = angle / speed
@@ -1073,7 +1073,7 @@ class Drone():
         self.waiting = True
 
     def _rotate_cw(self, angle):
-        speed = 72 #deg/s
+        speed = 144#cm/s 
         dt = game.dt
 
         est_time = angle / speed
@@ -1220,7 +1220,7 @@ class Drone():
         Move the drone forward by the specified distance in the direction it is facing.
         :param distance: The distance to move.
         """
-        speed = 150 #cm/s
+        speed = 300#cm/s 
         dt = game.dt
 
         est_time = distance / speed
@@ -1252,7 +1252,7 @@ class Drone():
         Move the drone forward by the specified distance in the direction it is facing.
         :param distance: The distance to move.
         """
-        speed = 150 #cm/s
+        speed = 300#cm/s 
         dt = game.dt
 
         est_time = distance / speed
@@ -1284,7 +1284,7 @@ class Drone():
         Move the drone Right by the specified distance.
         :param distance: The distance to move.
         """
-        speed = 150 #cm/s
+        speed = 300#cm/s 
         dt = game.dt
 
         est_time = distance / speed
@@ -1316,7 +1316,7 @@ class Drone():
         Move the drone Left by the specified distance.
         :param distance: The distance to move.
         """
-        speed = 150 #cm/s
+        speed = 300#cm/s 
         dt = game.dt
 
         est_time = distance / speed
